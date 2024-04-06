@@ -145,7 +145,7 @@ module ui(
     
     // Pressing to make shapes "disappear"
     reg [6:0] x_lowest, y_lowest; // x and y coordinate of plus signs relative to origin
-    reg a_pressed, b_pressed, c_pressed, d_pressed;
+    reg a_pressed, b_pressed, c_pressed, d_pressed, button_pressed;
     reg [31:0] dbCount = 0; // debouncing
     reg btn_ready = 1; // debouncing
     
@@ -169,7 +169,9 @@ module ui(
     reg pointFlag = 0;
     reg [31:0] pt_delay_counter;
     reg correct_button = 0;
-//    reg correct_buttonA = 0, correct_buttonB = 0, correct_buttonC = 0, correct_buttonD = 0;
+    
+//    {0: centre, 1: down, 2: left, 3: right, 4: up}
+    reg [2:0] correct_buttonA = 0, correct_buttonB = 0, correct_buttonC = 0, correct_buttonD = 0;
 
     
     reg [3:0] interface_state = 0;
@@ -310,260 +312,150 @@ module ui(
             if (shape_a) begin
                 case(random_shapeA) 
                     4'b0000: begin
+                        correct_buttonA <= 0;
                         moving_shape_a <= c_arrowA;
-                        shape_a_colour <= CENTRE_ARROW_COLOUR;
-                        random_x_centre <= random_x_a;
-                        y_pos_centre <= y_pos_a;
+                        if (y_pos_a == 0) shape_a_colour <= CENTRE_ARROW_COLOUR;
+//                        random_x_centre <= random_x_a;
+//                        y_pos_centre <= y_pos_a;
                     end
                     4'b0001: begin
+                        correct_buttonA <= 1;
                         moving_shape_a <= d_arrowA;
-                        shape_a_colour <= DOWN_ARROW_COLOUR;
-                        random_x_down <= random_x_a;
-                        y_pos_down <= y_pos_a;
+                        if (y_pos_a == 0) shape_a_colour <= DOWN_ARROW_COLOUR;
+//                        random_x_down <= random_x_a;
+//                        y_pos_down <= y_pos_a;
                     end
                     4'b0010: begin
+                        correct_buttonA <= 2;
                         moving_shape_a <= l_arrowA;
-                        shape_a_colour <= LEFT_ARROW_COLOUR;
-                        random_x_left <= random_x_a;
-                        y_pos_left <= y_pos_a;
+                        if (y_pos_a == 0) shape_a_colour <= LEFT_ARROW_COLOUR;
+//                        random_x_left <= random_x_a;
+//                        y_pos_left <= y_pos_a;
                      end
                     4'b0011: begin
+                        correct_buttonA <= 3;
                         moving_shape_a <= r_arrowA;
-                        shape_a_colour <= RIGHT_ARROW_COLOUR;
-                        random_x_right <= random_x_a;
-                        y_pos_right <= y_pos_a;
+                        if (y_pos_a == 0) shape_a_colour <= RIGHT_ARROW_COLOUR;
+//                        random_x_right <= random_x_a;
+//                        y_pos_right <= y_pos_a;
                      end
                     4'b0100: begin
-//                        if (y_pos_up == 0) begin // check if its unused
-//                            led = 16'b00001_00000_000000;
-//                            moving_shape_a <= u_arrow;
-//                            shape_a_colour <= UP_ARROW_COLOUR;
-//                            random_x_up <= random_x_a;
-//                            y_pos_up <= y_pos_a;
-                            
-//                            if (y_pos_up == 62) begin
-//                                // the shape has reached the bottom, deem it unused
-//                                random_x_up <= 0;
-//                                y_pos_up <= 0;
-//                            end
-//                        end
-//                        else begin // transition to next arrow
-//                            random_shapeA = random_shapeA + 1;
-//                            led = 16'b00000_00001_000000;
-//                        end
+                        correct_buttonA <= 4;
                         moving_shape_a <= u_arrowA;
-                        shape_a_colour <= UP_ARROW_COLOUR;
-                        random_x_up <= random_x_a;
-                        y_pos_up <= y_pos_a;
+                        if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
+//                        random_x_up <= random_x_a;
+//                        y_pos_up <= y_pos_a;
                     end
                     default: begin
-                        moving_shape_a <= u_arrow;
-                        shape_a_colour <= UP_ARROW_COLOUR;
-                        random_x_up <= random_x_a;
-                        y_pos_up <= y_pos_a;
+                        correct_buttonA <= 4;
+                        moving_shape_a <= u_arrowA;
+                        if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
+//                        random_x_up <= random_x_a;
+//                        y_pos_up <= y_pos_a;
+                    end
+                endcase
+            end
+            
+            random_shapeB = random_gen_shapeB;
+            // generating random_shapes for shape B. {0: centre, 1: down, 2: left, 3: right, 4: up}
+            if (shape_b) begin
+                case(random_shapeB) 
+                    4'b0000: begin
+                        moving_shape_b <= c_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= CENTRE_ARROW_COLOUR;
+                     //   random_x_centre <= random_x_b;
+                      //  y_pos_centre <= y_pos_b;
+                        correct_buttonB <= 0;
+                    end
+                    4'b0001: begin
+                        correct_buttonB <= 1;
+                        moving_shape_b <= d_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= DOWN_ARROW_COLOUR;
+                        // random_x_down <= random_x_b;
+                        // y_pos_down <= y_pos_b;
+                    end
+                    4'b0010: begin
+                        correct_buttonB <= 2;
+                        moving_shape_b <= l_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= LEFT_ARROW_COLOUR;
+//                       0random_x_left <= random_x_b;
+  //                      y_pos_left <= y_pos_b;
+                        end
+                    4'b0011: begin
+                        correct_buttonB <= 3;
+                        moving_shape_b <= r_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= RIGHT_ARROW_COLOUR;
+//                        random_x_right <= random_x_b;
+        //                y_pos_right <= y_pos_b;
+                        end
+                    4'b0100: begin
+                        correct_buttonB <= 4;
+                        moving_shape_b <= u_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= UP_ARROW_COLOUR;
+//                        random_x_up <= random_x_b;
+      //                  y_pos_up <= y_pos_b;
+                    end
+                    default: begin
+                        correct_buttonB <= 4;                    
+                        moving_shape_b <= u_arrowB;
+                        if (y_pos_b == 0) shape_b_colour <= UP_ARROW_COLOUR;
+    //                    random_x_up <= random_x_b;
+ //                       y_pos_up <= y_pos_b;
                     end
                 endcase
             end
             /*
-            random_shapeB = random_gen_shapeB;
-            case(random_shapeB) 
-                4'b0000: begin
-                    if (y_pos_centre == 0) begin // check if its unused
-                        moving_shape_b <= c_arrow;
-                        shape_b_colour <= CENTRE_ARROW_COLOUR;
-                        random_x_centre <= random_x_b;
-                        y_pos_centre <= y_pos_b;
-                        
-                        if (y_pos_centre == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_centre <= 0;
-                            y_pos_centre <= 0;
-                        end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeB = random_shapeB + 1;
-                    end
-                end
-                4'b0001: begin
-                    if (y_pos_down == 0) begin // check if its unused
-                        moving_shape_b <= d_arrow;
-                        shape_b_colour <= DOWN_ARROW_COLOUR;
-                        random_x_down <= random_x_b;
-                        y_pos_down <= y_pos_b;
-                        
-                        if (y_pos_down == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_down <= 0;
-                            y_pos_down <= 0;
-                        end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeB = random_shapeB + 1;
-                    end
-                end
-                4'b0010: begin
-                    
-                    if (y_pos_left == 0) begin // check if its unused
-                        moving_shape_b <= l_arrow;
-                        shape_b_colour <= LEFT_ARROW_COLOUR;
-                        random_x_left <= random_x_b;
-                        y_pos_left <= y_pos_b;
-                        
-                        if (y_pos_left == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_left <= 0;
-                            y_pos_left <= 0;
-                        end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeB = random_shapeB + 1;
-                    end
-                 end
-                4'b0011: begin
-                    
-                    if (y_pos_right == 0) begin // check if its unused
-                        moving_shape_b <= r_arrow;
-                        shape_b_colour <= RIGHT_ARROW_COLOUR;
-                        random_x_right <= random_x_b;
-                        y_pos_right <= y_pos_b;
-                        
-                        if (y_pos_right == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_right <= 0;
-                            y_pos_right <= 0;
-                        end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeB = random_shapeB + 1;
-                    end
-                    
-                 end
-                4'b0100: begin
-                    
-                    if (y_pos_up == 0) begin // check if its unused
-                        moving_shape_b <= u_arrow;
-                        shape_b_colour <= UP_ARROW_COLOUR;
-                        random_x_up <= random_x_b;
-                        y_pos_up <= y_pos_b;
-                        
-                        if (y_pos_up == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_up <= 0;
-                            y_pos_up <= 0;
-                        end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeB = random_shapeB + 1;
-                    end
-                end
-                default: begin
-                    moving_shape_b <= u_arrow;
-                    shape_b_colour <= UP_ARROW_COLOUR;
-                    random_x_up <= random_x_b;
-                    y_pos_up <= y_pos_b;
-                end
-            endcase
-            */
-            
-            /*
             random_shapeC = random_gen_shapeC;
-            case(random_shapeC) 
-                4'b0000: begin
-                    if (y_pos_centre == 0) begin // check if its unused
-                        moving_shape_c <= c_arrow;
-                        shape_c_colour <= CENTRE_ARROW_COLOUR;
+            // generating random_shapes for shape A. {0: centre, 1: down, 2: left, 3: right, 4: up}
+            if (shape_c) begin
+                case(random_shapeC) 
+                    4'b0000: begin
+                        moving_shape_c <= c_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= CENTRE_ARROW_COLOUR;
                         random_x_centre <= random_x_c;
                         y_pos_centre <= y_pos_c;
-                        
-                        if (y_pos_centre == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_centre <= 0;
-                            y_pos_centre <= 0;
-                        end
+            //                        correct_buttonC <= 0;
                     end
-                    else begin // transition to next arrow
-                        random_shapeC = random_shapeC + 1;
-                    end
-                end
-                4'b0001: begin
-                    if (y_pos_down == 0) begin // check if its unused
-                        moving_shape_c <= d_arrow;
-                        shape_c_colour <= DOWN_ARROW_COLOUR;
+                    4'b0001: begin
+            //                        correct_buttonC <= 1;
+                        moving_shape_c <= d_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= DOWN_ARROW_COLOUR;
                         random_x_down <= random_x_c;
                         y_pos_down <= y_pos_c;
-                        
-                        if (y_pos_down == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_down <= 0;
-                            y_pos_down <= 0;
-                        end
                     end
-                    else begin // transition to next arrow
-                        random_shapeC = random_shapeC + 1;
-                    end
-                end
-                4'b0010: begin
-                    
-                    if (y_pos_left == 0) begin // check if its unused
-                        moving_shape_c <= l_arrow;
-                        shape_c_colour <= LEFT_ARROW_COLOUR;
+                    4'b0010: begin
+            //                        correct_buttonC <= 2;
+                        moving_shape_c <= l_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= LEFT_ARROW_COLOUR;
                         random_x_left <= random_x_c;
                         y_pos_left <= y_pos_c;
-                        
-                        if (y_pos_left == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_left <= 0;
-                            y_pos_left <= 0;
                         end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeC = random_shapeC + 1;
-                    end
-                 end
-                4'b0011: begin
-                    
-                    if (y_pos_right == 0) begin // check if its unused
-                        moving_shape_c <= r_arrow;
-                        shape_c_colour <= RIGHT_ARROW_COLOUR;
+                    4'b0011: begin
+            //                        correct_buttonC <= 3;
+                        moving_shape_c <= r_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= RIGHT_ARROW_COLOUR;
                         random_x_right <= random_x_c;
                         y_pos_right <= y_pos_c;
-                        
-                        if (y_pos_right == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_right <= 0;
-                            y_pos_right <= 0;
                         end
-                    end
-                    else begin // transition to next arrow
-                        random_shapeC = random_shapeC + 1;
-                    end
-                    
-                 end
-                4'b0100: begin
-                    
-                    if (y_pos_up == 0) begin // check if its unused
-                        moving_shape_c <= u_arrow;
-                        shape_c_colour <= UP_ARROW_COLOUR;
+                    4'b0100: begin
+            //                        correct_buttonC <= 4;
+                        moving_shape_c <= u_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
                         random_x_up <= random_x_c;
                         y_pos_up <= y_pos_c;
-                        
-                        if (y_pos_up == 62) begin
-                            // the shape has reached the bottom, deem it unused
-                            random_x_up <= 0;
-                            y_pos_up <= 0;
-                        end
                     end
-                    else begin // transition to next arrow
-                        random_shapeC = random_shapeC + 1;
+                    default: begin
+            //                        correct_buttonC <= 4;
+                        moving_shape_c <= u_arrowC;
+                        if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
+                        random_x_up <= random_x_c;
+                        y_pos_up <= y_pos_c;
                     end
-                end
-                default: begin
-                    moving_shape_c <= u_arrow;
-                    shape_c_colour <= UP_ARROW_COLOUR;
-                    random_x_up <= random_x_c;
-                    y_pos_up <= y_pos_c;
-                end
-            endcase
+                endcase
+            end
+            */
+            /*
+            
             */
             
         
@@ -576,7 +468,7 @@ module ui(
                 end
                 else if (~shape_b) begin
                     shape_b <= 1;
-                    shape_b_colour <= RED;
+//                    shape_b_colour <= RED;
                 end
                 else if (~shape_c) begin
                     shape_c <= 1;
@@ -589,17 +481,24 @@ module ui(
             end
 
             // once shape disappears, get it ready for next drop / recycle
-            if (y_pos_a > 62 || (shape_a && correct_button && y_lowest == y_pos_a)) begin
+//            if (y_pos_a > 62 || (shape_a && correct_button && y_lowest == y_pos_a)) begin
+//                if (y_pos_a > 62) shape_a = 0; // deactivate upon hitting bottom
+//                if (shape_a && correct_button) begin
+//                    shape_a_colour <= BLACK;
+//                    correct_button = 0;
+//                end   
+//            end
+            if (y_pos_a > 62 || (shape_a && button_pressed && y_lowest == y_pos_a)) begin
                 if (y_pos_a > 62) shape_a = 0; // deactivate upon hitting bottom
-                if (shape_a && correct_button) begin
+                if (shape_a && button_pressed) begin
                     shape_a_colour <= BLACK;
                     correct_button = 0;
                 end   
             end
             
-            if (y_pos_b > 62 || (shape_b && correct_button && y_lowest == y_pos_b)) begin
+            if (y_pos_b > 62 || (shape_b && button_pressed && y_lowest == y_pos_b)) begin
                 if (y_pos_b > 62) shape_b = 0; // deactivate upon hitting bottom
-                if (shape_b && correct_button) begin
+                if (shape_b && button_pressed) begin
                     shape_b_colour <= BLACK;
                     correct_button = 0;
                 end   
@@ -674,29 +573,60 @@ module ui(
                 btn_ready = 0;
     
                 // TODO: If button is pressed and button matches the "shape" of the lowest 
-                correct_button = 1;
+                correct_button = 0;
+                button_pressed = 1;
+                
+                // If button is correct, allocate points{0: centre, 1: down, 2: left, 3: right, 4: up}
+                if (y_lowest == y_pos_a && ( (correct_buttonA == 0 && btnC) || (correct_buttonA == 1 && btnD) 
+                    || (correct_buttonA == 2 && btnL) || (correct_buttonA == 3 && btnR) 
+                    || (correct_buttonA == 4 && btnU) ) ) begin
+                    correct_button = 1;
+                end
+                
+                if (y_lowest == y_pos_b && ((correct_buttonB == 0 && btnC) || (correct_buttonB == 1 && btnD) 
+                    || (correct_buttonB == 2 && btnL) || (correct_buttonB == 3 && btnR) 
+                    || (correct_buttonB == 4 && btnU))) begin
+                    correct_button = 1;
+                end
+                /*
+                if (y_lowest == y_pos_c && ((correct_buttonC == 0 && btnC) || (correct_buttonC == 1 && btnD) 
+                    || (correct_buttonC == 2 && btnL) || (correct_buttonC == 3 && btnR) 
+                    || (correct_buttonC == 4 && btnU))) begin
+                    correct_button = 1;
+                end
+                
+                if (y_lowest == y_pos_d && ((correct_buttonD == 0 && btnC) || (correct_buttonD == 1 && btnD) 
+                    || (correct_buttonD == 2 && btnL) || (correct_buttonD == 3 && btnR) 
+                    || (correct_buttonD == 4 && btnU))) begin
+                    correct_button = 1;
+                end
+                */
+                
                 
                 // accuracy value
                 if (y_lowest + 3 < line_y) accuracy = line_y - (y_lowest +3);
                 else accuracy = (y_lowest +3) - line_y;
                 // score allocation
-                if (accuracy <= 3) // +3 (green)
+                if (correct_button && accuracy <= 3) // +3 (green)
                 begin
                     score =  score + 3;
                     led = 16'b00000_00000_001000;
                     threeFlag = 1;
+                    correct_button = 0;
                 end
-                else if (accuracy <= 5) // +2 (blue)
+                else if (correct_button && accuracy <= 5) // +2 (blue)
                 begin
                     score = score + 2;
                     led = 16'b00000_00000_000100;
                     twoFlag = 1;
+                    correct_button = 0;
                 end
-                else if (accuracy <= 7) // +1 (yellow)
+                else if (correct_button && accuracy <= 7) // +1 (yellow)
                 begin
                     score = score + 1;
                     led = 16'b00000_00000_000010;
                     oneFlag = 1;
+                    correct_button = 0;
                 end
                 else // +0 (red)
                 begin
@@ -704,7 +634,7 @@ module ui(
                     zeroFlag = 1;
                 end
             end 
-            else correct_button = 0;
+            else button_pressed = 0;
             
             if (zeroFlag || oneFlag || twoFlag || threeFlag)  begin  
                 // count for half a second
@@ -854,34 +784,50 @@ module ui(
     assign moving_square_c = (x >= random_x_c && x < random_x_c + 5 ) && (y >= y_pos_c && y < y_pos_c + 5);
     assign moving_square_d = (x >= random_x_d && x < random_x_d + 5 ) && (y >= y_pos_d && y < y_pos_d + 5);
     assign line = (x >= 0 && x <= 95) && y == line_y;  
-//    assign plus_zero = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
-//        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 20 + x_lowest) && (y == 1 + y_lowest)) 
-//        || ((x == 14 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 20 + x_lowest) && (y == 9 + y_lowest)) 
-//        || ((x == 19 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)));
+//    assign plus_zero = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 4 + y_lowest))
+//                || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
+//                || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
+//                || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
+//                || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
+//                || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
     assign plus_zero = (((x >= 8 + x_lowest) && (x < 17 + x_lowest) && (y == 4 + y_lowest))
             || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
             || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
             || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
             || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
             || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
-    assign plus_one = (((x >= 4 + x_lowest) && (x < 11 + x_lowest) && (y == 5 + y_lowest))
-        || ((x == 7 + x_lowest) && (y >= 2 + y_lowest) && (y < 9 + y_lowest))
-        || ((x == 13 + x_lowest) && (y >= 2 + y_lowest) && y < 9 + y_lowest));
-    assign plus_two = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
-        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
-        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 6 + y_lowest)) 
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
-        || ((x == 14 + x_lowest) && (y >= 5 + y_lowest) && (y < 10 + y_lowest))
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-    assign plus_three = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
-        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
-        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
-        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
+//    assign plus_one = (((x >= 4 + x_lowest) && (x < 11 + x_lowest) && (y == 5 + y_lowest))
+//        || ((x == 7 + x_lowest) && (y >= 2 + y_lowest) && (y < 9 + y_lowest))
+//        || ((x == 13 + x_lowest) && (y >= 2 + y_lowest) && y < 9 + y_lowest));
+    assign plus_one = (((x >= 8 + x_lowest) && (x < 15 + x_lowest) && (y == 3 + y_lowest))
+        || ((x == 11 + x_lowest) && (y >= y_lowest) && (y < 7 + y_lowest))
+        || ((x == 17 + x_lowest) && (y >= y_lowest) && y < 7 + y_lowest));
+//    assign plus_two = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
+//        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
+//        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 6 + y_lowest)) 
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
+//        || ((x == 14 + x_lowest) && (y >= 5 + y_lowest) && (y < 10 + y_lowest))
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
+    assign plus_two = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
+        || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
+        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
+        || ((x == 22 + x_lowest) && (y >= y_lowest - 1) && (y < 4 + y_lowest)) 
+        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
+        || ((x == 18 + x_lowest) && (y >= 3 + y_lowest) && (y < 8 + y_lowest))
+        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
+//    assign plus_three = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
+//        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
+//        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
+//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
+    assign plus_three = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
+       || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
+       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
+       || ((x == 22 + x_lowest) && (y >=  y_lowest - 1) && (y < 8 + y_lowest)) 
+       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
+       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
 
     // you will not see 2 of the same arrows on the screen at the same time since the shapes are shared
     assign u_arrowA = ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
@@ -918,7 +864,7 @@ module ui(
                         ((x == random_x_a + 2) && (y == y_pos_a + 5)) || ((x >= random_x_a + 1) && (x < random_x_a + 4) && (y == y_pos_a + 6)) ||
                         ((x >= random_x_a) && (x < random_x_a + 3) && (y == y_pos_a + 7)) || ((x >= random_x_a) && (x < random_x_a + 2) && (y == y_pos_a + 8));
                         
-    /*
+    
     assign u_arrowB = ((x == random_x_b + 4) && (y >= y_pos_b) && (y < y_pos_b + 5)) || 
                         ((x >= random_x_b + 3) && (x < random_x_b + 6) && (y >= y_pos_b + 1) && (y < y_pos_b + 5)) ||
                         ((x >= random_x_b + 2) && (x < random_x_b + 7) && (y >= y_pos_b + 2) && (y < y_pos_b + 5)) ||
@@ -952,7 +898,7 @@ module ui(
                         ((x >= random_x_b + 6) && (x < random_x_b + 9) && (y == y_pos_b + 7)) || ((x >= random_x_b +7) && (x < random_x_b + 9) && (y == y_pos_b + 8)) ||
                         ((x == random_x_b + 2) && (y == y_pos_b + 5)) || ((x >= random_x_b + 1) && (x < random_x_b + 4) && (y == y_pos_b + 6)) ||
                         ((x >= random_x_b) && (x < random_x_b + 3) && (y == y_pos_b + 7)) || ((x >= random_x_b) && (x < random_x_b + 2) && (y == y_pos_b + 8));
-                        
+           /*             
     assign u_arrowC = ((x == random_x_c + 4) && (y >= y_pos_c) && (y < y_pos_c + 5)) || 
                         ((x >= random_x_c + 3) && (x < random_x_c + 6) && (y >= y_pos_c + 1) && (y < y_pos_c + 5)) ||
                         ((x >= random_x_c + 2) && (x < random_x_c + 7) && (y >= y_pos_c + 2) && (y < y_pos_c + 5)) ||
@@ -960,7 +906,6 @@ module ui(
                         ((x >= random_x_c) && (x < random_x_c + 9) && (y >= y_pos_c + 4) && (y < y_pos_c + 5)) ||
                         ((y >= y_pos_c + 5) && (y < y_pos_c + 10) && (x == random_x_c + 4 ));
     assign l_arrowC = ((y == y_pos_c + 4) && (x >= random_x_c) && (x < random_x_c + 5)) || 
-                        ((y >= y_pos_c + 3) && (y < y_pos_c + 6) && (x >= random_x_c + 1) && (x < random_x_c + 5)) ||
                         ((y >= y_pos_c + 2) && (y < y_pos_c + 7) && (x >= random_x_c + 2) && (x < random_x_c + 5)) ||
                         ((y >= y_pos_c + 1) && (y < y_pos_c + 8) && (x >= random_x_c + 3) && (x < random_x_c + 5)) ||
                         ((y >= y_pos_c) && (y < y_pos_c + 9) && (x >= random_x_c + 4) && (x < random_x_c + 5)) ||
@@ -1188,55 +1133,21 @@ module ui(
     always @(posedge clk) begin
         if (line) game_pixel_data <= BLUE;
         else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
-//        else if (u_arrow && shape_a) game_pixel_data <= shape_a_colour;
-        else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
-//        else if (moving_shape_b && shape_b) game_pixel_data <= shape_b_colour;
+//        else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
+        else if (moving_shape_b && shape_b) game_pixel_data <= shape_b_colour;
         else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
         else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
-//        else if (moving_shape_a==c_arrow) && shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
-//        else if (shape_a) begin
-//            if ((moving_shape_a == c_arrow) && moving_shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
-//            else if ((moving_shape_a == d_arrow) && moving_shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
-//            else if ((moving_shape_a == l_arrow) && moving_shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
-//            else if ((moving_shape_a == r_arrow) && moving_shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//            else if ((moving_shape_a == u_arrow) && moving_shape_a) game_pixel_data <= UP_ARROW_COLOUR;
-            
-//            else if (moving_shape_b && shape_b) game_pixel_data <= CENTRE_ARROW_COLOUR;
-//            else if (moving_shape_c && shape_c) game_pixel_data <= CENTRE_ARROW_COLOUR;
-//            else if (moving_shape_d && shape_d) game_pixel_data <= CENTRE_ARROW_COLOUR;
-//        end
-//        else if (d_arrow) begin
-//            if ((moving_shape_a) && shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
-////            else if (moving_shape_b && shape_b) game_pixel_data <= DOWN_ARROW_COLOUR;
-////            else if (moving_shape_c && shape_c) game_pixel_data <= DOWN_ARROW_COLOUR;
-////            else if (moving_shape_d && shape_d) game_pixel_data <= DOWN_ARROW_COLOUR;
-//        end
-//        else if (l_arrow) begin
-//            if ((moving_shape_a) && shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
-////            else if (moving_shape_b && shape_b) game_pixel_data <= LEFT_ARROW_COLOUR;
-////            else if (moving_shape_c && shape_c) game_pixel_data <= LEFT_ARROW_COLOUR;
-////            else if (moving_shape_d && shape_d) game_pixel_data <= LEFT_ARROW_COLOUR;
-//        end
-//        else if (r_arrow) begin
-//            if ((moving_shape_a) && shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
-////            else if (moving_shape_b && shape_b) game_pixel_data <= RIGHT_ARROW_COLOUR;
-////            else if (moving_shape_c && shape_c) game_pixel_data <= RIGHT_ARROW_COLOUR;
-////            else if (moving_shape_d && shape_d) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//        end
-//        else if (u_arrow) begin
-//            if ((moving_shape_a) && shape_a) game_pixel_data <= UP_ARROW_COLOUR;
-////            else if (moving_shape_b && shape_b) game_pixel_data <= UP_ARROW_COLOUR;
-////            else if (moving_shape_c && shape_c) game_pixel_data <= UP_ARROW_COLOUR;
-////            else if (moving_shape_d && shape_d) game_pixel_data <= UP_ARROW_COLOUR;
-//        end
-        //else if ((d_arrow == moving_shape_a) && shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
-//        else if ((l_arrow == moving_shape_a) && shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
-//        else if ((r_arrow == moving_shape_a) && shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//        else if ((u_arrow == moving_shape_a) && shape_a) game_pixel_data <= UP_ARROW_COLOUR;
+//        else if (moving_shape_c && shape_c) game_pixel_data <= shape_c_colour;
+//        else if (moving_shape_d && shape_d) game_pixel_data <= shape_d_colour;
+        
+        
+        // Points reflection
         else if (plus_zero && zeroFlag) game_pixel_data <= RED;
         else if (plus_one && oneFlag) game_pixel_data <= YELLOW;
         else if (plus_two && twoFlag) game_pixel_data <= BLUE;
         else if (plus_three && threeFlag) game_pixel_data <= GREEN;
+        
+        // OLED Timer
         else if (secondsCounter == 0 && twenty) game_pixel_data <= WHITE;
         else if (secondsCounter == 1 && nineteen) game_pixel_data <= WHITE;
         else if (secondsCounter == 2 && eighteen) game_pixel_data <= WHITE;
