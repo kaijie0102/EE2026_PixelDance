@@ -50,7 +50,7 @@ module random_x_generator3(
                 random_x <= lfsr_reg[7:1]; // Directly use the value if it's 80 or below
             end
             
-            if (random_x < 10) random_x = random_x + 10;
+            if (random_x < 10) random_x <= random_x + 10;
         end 
     end
 
