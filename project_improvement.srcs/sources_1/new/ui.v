@@ -146,6 +146,12 @@ module ui(
     // Score tracking for main game
     reg [31:0] accuracy = 0; // distance between line and shape when button is pressed
     reg [31:0] score = 0; // keeping track of score
+    reg [31:0] highscore = 0; // keeping track of high score 
+    reg finishGameFlag = 0;
+    reg justStartGameFlag = 0;
+    reg [31:0] finishGameCounter = 0;
+    reg [31:0] oneSecondCounter = 0; // counter for 1 second
+    reg [31:0] secondsCounter = 0; // count from 0 to 20
     reg zeroFlag = 0;
     reg oneFlag = 0;
     reg twoFlag = 0;
@@ -155,12 +161,39 @@ module ui(
     reg correct_button = 0;
 //    reg correct_buttonA = 0, correct_buttonB = 0, correct_buttonC = 0, correct_buttonD = 0;
     
-    ////////////////////////////////
-    ///selection of interface //////
-    ////////////////////////////////
     reg [3:0] interface_state = 0;
     always @(posedge clk) begin
+    
+        ///////////////////////////////////////////
+        ///////////////// Game End //////////////
+        ///////////////////////////////////////////
         
+        // reset score when new game starts
+        if (finishGameFlag) begin
+            shape_a = 0;
+            shape_b = 0;
+            shape_c = 0;
+            shape_d = 0;
+            oneFlag = 0;
+            twoFlag = 0;
+            threeFlag = 0;
+            zeroFlag = 0;
+            y_lowest = 0;
+            secondsCounter = 0;
+            oneSecondCounter = 0;
+            
+            if (btnC) begin
+                score = 0;
+            end
+            
+            // Setting high score
+            if (highscore < score)
+                highscore = score;
+        end
+        
+        ////////////////////////////////
+        ///selection of interface //////
+        ////////////////////////////////
         case(interface_state) 
             4'b0000: begin // Welcome page interface
 //                led[0] <= 1;
@@ -208,42 +241,114 @@ module ui(
                 end
             end
             4'b0111: begin // Main Game
+//                oled_data = game_pixel_data;
+//                if (btnR) begin
+//                  interface_state <= 4'b1000; // Transition to Next State
+//                end
                 oled_data = game_pixel_data;
-                if (btnR) begin
-                  interface_state <= 4'b1000; // Transition to Next State
+                if (finishGameFlag && highscore >= score) begin
+                    interface_state <= 4'b1000; // Transition to Try Again State
+                end
+                else if (finishGameFlag && highscore < score) begin
+                    interface_state <= 4'b1001; // Transition to high score beaten interface
                 end
             end
             4'b1000: begin // Beaten High Score Interface
+//                oled_data = tryAgain_pixel_data;
+//                if (btnC) begin
+//                  interface_state <= 4'b1001; // Transition to Next State
+//                end
                 oled_data = tryAgain_pixel_data;
                 if (btnC) begin
-                  interface_state <= 4'b1001; // Transition to Next State
+                  finishGameFlag <= 0;
+                  justStartGameFlag = 1;
+                  interface_state <= 4'b0111; // Transition to Game
                 end
             end
             4'b1001: begin // Add your logic for the new interface state here
+//                oled_data = beatHigh_pixel_data;
                 oled_data = beatHigh_pixel_data;
+                if (btnC) begin
+                    finishGameFlag <= 0;
+                    justStartGameFlag = 1;
+                    interface_state <= 4'b0111; // Transition to Game
+                end
             end
             default: begin
                 oled_data = welcome_pixel_data; // Default to User Interface
             end
         endcase
         
-        ///////////////////////////////////////////
-        ///////////////// Game Start //////////////
-        ///////////////////////////////////////////
-        if (interface_state == 4'b0111) begin
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////// Game Logic ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (interface_state == 4'b0111 && finishGameFlag == 0) begin
+            finishGameCounter <= (finishGameCounter == 2_000_000_000) ? 0 : finishGameCounter + 1;
+            finishGameFlag = (finishGameCounter == 2_000_000_000) ? 1 : 0;
+            
+            oneSecondCounter <= (oneSecondCounter == 100_000_000 - 1) ? 0: oneSecondCounter + 1;
+            secondsCounter = (oneSecondCounter == 100_000_000 - 1) ? secondsCounter + 1 : secondsCounter;
+            
+            justStartGameFlag = (finishGameCounter >= 50_000_000) ? 0 : 1;
+            
             // generating random_shapes for shape A. {0: centre, 1: down, 2: left, 3: right, 4: up}
             case(random_shape) 
                 4'b0000: begin
                     moving_shape_a <= c_arrow;
 //                    correct_buttonA = 
+                    shape_a_colour <= CENTRE_ARROW_COLOUR;
                 end
-                4'b0001: moving_shape_a <= d_arrow;   
-                4'b0010: moving_shape_a <= l_arrow; 
-                4'b0011: moving_shape_a <= r_arrow; 
-                4'b0100: moving_shape_a <= u_arrow;  
-                default: moving_shape_a <= u_arrow;
+                4'b0001: begin
+                    moving_shape_a <= d_arrow;
+                    shape_a_colour <= DOWN_ARROW_COLOUR;
+                end
+                4'b0010: begin
+                    moving_shape_a <= l_arrow;
+                    shape_a_colour <= LEFT_ARROW_COLOUR;
+                 end
+                4'b0011: begin
+                    moving_shape_a <= r_arrow;
+                    shape_a_colour <= RIGHT_ARROW_COLOUR;
+                 end
+                4'b0100: begin
+                    moving_shape_a <= u_arrow;
+                    shape_a_colour <= UP_ARROW_COLOUR;
+                end
+                default: begin
+                    moving_shape_a <= u_arrow;
+                    shape_a_colour <= UP_ARROW_COLOUR;
+                end
             endcase
-
+            
+            /*
+            case(random_shapeB) 
+                4'b0000: begin
+                    moving_shape_b <= c_arrow;
+                    shape_b_colour <= CENTRE_ARROW_COLOUR;
+                end
+                4'b0001: begin
+                    moving_shape_b <= d_arrow;
+                    shape_b_colour <= DOWN_ARROW_COLOUR;
+                end
+                4'b0010: begin
+                    moving_shape_b <= l_arrow;
+                    shape_b_colour <= LEFT_ARROW_COLOUR;
+                 end
+                4'b0011: begin
+                    moving_shape_b <= r_arrow;
+                    shape_b_colour <= RIGHT_ARROW_COLOUR;
+                 end
+                4'b0100: begin
+                    moving_shape_b <= u_arrow;
+                    shape_b_colour <= UP_ARROW_COLOUR;
+                end
+                default: begin
+                    moving_shape_b <= u_arrow;
+                    shape_b_colour <= UP_ARROW_COLOUR;
+                end
+            endcase
+            */
+            
         
             // speed of "release" of shapes from the top into the screen
             drop_counter <= (drop_counter == 100_000_000) ? 0 : drop_counter + 1;
@@ -389,6 +494,10 @@ module ui(
 //                    y_lowest = y_pos_b;
 //                    x_lowest = random_x_b;
 //                end
+//                else begin
+//                    y_lowest = 0;
+//                    x_lowest = 0;                     
+//                end
 //                shape_lowest = moving_shape_a;
             end
             else if ((y_pos_b > y_pos_a && y_pos_b > y_pos_c && y_pos_b > y_pos_d) && (y_pos_b < line_y + 3) && ~(shape_a_colour == BLACK)) begin
@@ -425,7 +534,7 @@ module ui(
             end
             
             /////////// Button pressed ///////////
-            if (btn_ready && (btnC || btnD || btnL || btnR || btnU)) begin
+            if (btn_ready  && justStartGameFlag == 0 && (btnC || btnD || btnL || btnR || btnU)) begin
                 btn_ready = 0;
     
                 // TODO: If button is pressed and button matches the "shape" of the lowest 
@@ -637,7 +746,9 @@ module ui(
 //        || ((x >= random_x_a + 5) && (x < random_x_a + 12) && (y == y_pos_a + 7))
 //        || ((x >= random_x_a + 4) && (x < random_x_a + 13) && (y == y_pos_a + 8))
 //        || ((y >= y_pos_a + 9) && (y < y_pos_a + 14) && (x == random_x_a + 8));
-    assign u_arrow = ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
+
+    // you will not see 2 of the same arrows on the screen at the same time since the shapes are shared
+    assign u_arrow= ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
                         ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y >= y_pos_a + 1) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a + 2) && (x < random_x_a + 7) && (y >= y_pos_a + 2) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a + 1) && (x < random_x_a + 8) && (y >= y_pos_a + 3) && (y < y_pos_a + 5)) ||
@@ -670,49 +781,242 @@ module ui(
                         ((x >= random_x_a + 6) && (x < random_x_a + 9) && (y == y_pos_a + 7)) || ((x >= random_x_a +7) && (x < random_x_a + 9) && (y == y_pos_a + 8)) ||
                         ((x == random_x_a + 2) && (y == y_pos_a + 5)) || ((x >= random_x_a + 1) && (x < random_x_a + 4) && (y == y_pos_a + 6)) ||
                         ((x >= random_x_a) && (x < random_x_a + 3) && (y == y_pos_a + 7)) || ((x >= random_x_a) && (x < random_x_a + 2) && (y == y_pos_a + 8));
+                        
+    /*
+    assign u_arrow= ((x == random_x_up + 4) && (y >= y_pos_up) && (y < y_pos_up + 5)) || 
+                        ((x >= random_x_up + 3) && (x < random_x_up + 6) && (y >= y_pos_up + 1) && (y < y_pos_up + 5)) ||
+                        ((x >= random_x_up + 2) && (x < random_x_up + 7) && (y >= y_pos_up + 2) && (y < y_pos_up + 5)) ||
+                        ((x >= random_x_up + 1) && (x < random_x_up + 8) && (y >= y_pos_up + 3) && (y < y_pos_up + 5)) ||
+                        ((x >= random_x_up) && (x < random_x_up + 9) && (y >= y_pos_up + 4) && (y < y_pos_up + 5)) ||
+                        ((y >= y_pos_up + 5) && (y < y_pos_up + 10) && (x == random_x_up + 4 ));
+    assign l_arrow = ((y == y_pos_left + 4) && (x >= random_x_left) && (x < random_x_left + 5)) || 
+                        ((y >= y_pos_left + 3) && (y < y_pos_left + 6) && (x >= random_x_left + 1) && (x < random_x_left + 5)) ||
+                        ((y >= y_pos_left + 2) && (y < y_pos_left + 7) && (x >= random_x_left + 2) && (x < random_x_left + 5)) ||
+                        ((y >= y_pos_left + 1) && (y < y_pos_left + 8) && (x >= random_x_left + 3) && (x < random_x_left + 5)) ||
+                        ((y >= y_pos_left) && (y < y_pos_left + 9) && (x >= random_x_left + 4) && (x < random_x_left + 5)) ||
+                        ((x >= random_x_left + 5) && (x < random_x_left + 10) && (y == y_pos_left + 4 ));
+    assign d_arrow = ((x == random_x_down + 4) && (y <= y_pos_down) && (y > y_pos_down - 5)) || 
+                        ((x >= random_x_down + 3) && (x < random_x_down + 6) && (y <= y_pos_down - 1) && (y > y_pos_down - 5)) ||
+                        ((x >= random_x_down + 2) && (x < random_x_down + 7) && (y <= y_pos_down - 2) && (y > y_pos_down - 5)) ||
+                        ((x >= random_x_down + 1) && (x < random_x_down + 8) && (y <= y_pos_down - 3) && (y > y_pos_down - 5)) ||
+                        ((x >= random_x_down) && (x < random_x_down + 9) && (y <= y_pos_down - 4) && (y > y_pos_down - 5)) ||
+                        ((y <= y_pos_down - 5) && (y > y_pos_down - 10) && (x == random_x_down + 4 ));
+    assign r_arrow = ((y == y_pos_right + 4) && (x <= random_x_right) && (x > random_x_right - 5)) || 
+                        ((y >= y_pos_right + 3) && (y < y_pos_right + 6) && (x <= random_x_right - 1) && (x > random_x_right - 5)) ||
+                        ((y >= y_pos_right + 2) && (y < y_pos_right + 7) && (x <= random_x_right - 2) && (x > random_x_right - 5)) ||
+                        ((y >= y_pos_right + 1) && (y < y_pos_right + 8) && (x <= random_x_right - 3) && (x > random_x_right - 5)) ||
+                        ((y >= y_pos_right) && (y < y_pos_right + 9) && (x <= random_x_right - 4) && (x > random_x_right - 5)) ||
+                        ((x <= random_x_right - 5) && (x > random_x_right - 10) && (y == y_pos_right + 4 ));
+    assign c_arrow = ((x >= random_x_centre + 3) && (x < random_x_centre + 6) && (y >= y_pos_centre + 3) && (y < y_pos_centre + 6)) ||
+                        ((x == random_x_centre + 5) && (y == y_pos_centre + 3)) || ((x == random_x_centre + 6) && (y == y_pos_centre + 3)) || ((x >= random_x_centre + 5) && (x < random_x_centre + 8) && (y == y_pos_centre + 2)) ||
+                        ((x >= random_x_centre + 6) && (x < random_x_centre + 9) && (y == y_pos_centre + 1)) || ((x >= random_x_centre +7) && (x < random_x_centre + 9) && (y == y_pos_centre)) ||
+                        ((x == random_x_centre + 2) && (y == y_pos_centre + 3)) || ((x >= random_x_centre + 1) && (x < random_x_centre + 4) && (y == y_pos_centre + 2)) ||
+                        ((x >= random_x_centre ) && (x < random_x_centre + 3) && (y == y_pos_centre + 1)) || ((x >= random_x_centre) && (x < random_x_centre + 2) && (y == y_pos_centre)) ||
+                        ((x == random_x_centre + 6) && (y == y_pos_centre + 5)) || ((x >= random_x_centre + 5) && (x < random_x_centre + 8) && (y == y_pos_centre + 6)) ||
+                        ((x >= random_x_centre + 6) && (x < random_x_centre + 9) && (y == y_pos_centre + 7)) || ((x >= random_x_centre +7) && (x < random_x_centre + 9) && (y == y_pos_centre + 8)) ||
+                        ((x == random_x_centre + 2) && (y == y_pos_centre + 5)) || ((x >= random_x_centre + 1) && (x < random_x_centre + 4) && (y == y_pos_centre + 6)) ||
+                        ((x >= random_x_centre) && (x < random_x_centre + 3) && (y == y_pos_centre + 7)) || ((x >= random_x_centre) && (x < random_x_centre + 2) && (y == y_pos_centre + 8));
+    */
+    
+    assign zero = (((x == 91) && (y >= 2) && (y < 10))
+                  || ((x == 92) && (y >= 2) && (y < 10))
+                  || ((x == 94) && (y >= 2) && (y < 10))
+                  || ((x == 95) && (y >= 2) && (y < 10))
+                  || ((x >= 91) && (x < 96) && (y == 2))
+                  || ((x >= 91) && (x < 96) && (y == 3))
+                  || ((x >= 91) && (x < 96) && (y == 8))
+                  || ((x >= 91) && (x < 96) && (y == 9)));
+    assign one = (((x == 91) && (y >= 2) && (y < 10))
+                 || ((x == 92) && (y >= 2) && (y < 10)));
+    assign two = (((x >= 91) && (x < 96) && ((y == 2) || (y == 3) || (y == 5) || (y == 6) || (y == 8) || (y == 9))) ||
+                  (((x == 94) || (x == 95)) && (y >= 2) && (y < 7)) ||
+                  (((x == 91) || (x == 92)) && (y >= 5) && (y < 10)));
+    assign three = 
+         (((x >= 91) && (x < 96) && ((y == 2) || (y == 3) || (y == 5) || (y == 6) || (y == 8) || (y == 9))) ||
+         ((x == 94) && (y >= 2) && (y < 10)) ||
+         ((x == 95) && (y >= 2) && (y < 10)));
+    assign four = 
+         ((x >= 91) && (x < 96) && (y == 5)) ||
+         ((x >= 91) && (x < 96) && (y == 6)) ||
+         ((x == 94) && (y >= 2) && (y < 10)) ||
+         ((x == 95) && (y >= 2) && (y < 10)) ||
+         ((x == 91) && (y >= 2) && (y < 7))  ||
+         ((x == 92) && (y >= 2) && (y < 7));
+    assign five = 
+              (((x >= 91) && (x < 96) && ((y == 2) || (y == 3) || (y == 5) || (y == 6) || (y == 8) || (y == 9))) ||
+              (((x == 94) || (x == 95)) && (y >= 5) && (y < 10)) ||
+              (((x == 91) || (x == 92)) && (y >= 2) && (y < 7)));
+    assign six = 
+             ((x >= 91) && (x < 96) && (y == 2)) ||
+             ((x >= 91) && (x < 96) && (y == 3)) ||
+             ((x == 91) && (y >= 2) && (y < 10)) ||
+             ((x == 92) && (y >= 2) && (y < 10)) ||
+             ((x >= 91) && (x < 96) && (y == 9)) ||
+             ((x >= 91) && (x < 96) && (y == 6)) ||
+             ((x == 95) && (y >= 6) && (y < 10));
+     assign seven = 
+              ((x >= 91 && x < 96 && y == 2) ||
+              (x == 94 && y >= 2 && y < 10) ||
+              (x == 95 && y >= 2 && y < 10) ||
+              (x == 91 && y >= 2 && y < 5) ||
+              (x == 92 && y >= 2 && y < 5));
+     assign eight= 
+              (((x >= 91) && (x < 96) && (y == 2)) ||
+              ((x >= 91) && (x < 96) && (y == 5)) ||
+              ((x >= 91) && (x < 96) && (y == 6)) ||
+              ((x == 94) && (y >= 2) && (y < 10)) ||
+              ((x == 95) && (y >= 2) && (y < 10)) ||
+              ((x == 91) && (y >= 2) && (y < 10)) ||
+              ((x == 92) && (y >= 2) && (y < 10)) ||
+              ((x >= 91) && (x < 96) && (y == 9)));
+     assign nine = 
+              (((x >= 91) && (x < 96) && (y == 2)) ||
+              ((x >= 91) && (x < 96) && (y == 6)) ||
+              ((x == 94) && (y >= 2) && (y < 10)) ||
+              ((x == 95) && (y >= 2) && (y < 10)) ||
+              ((x == 91) && (y >= 2) && (y < 7)) ||
+              ((x == 92) && (y >= 2) && (y < 7))) ;
+     assign ten = 
+              ((x == 88 && (y >= 2 && y < 10)) ||
+              (x == 89 && (y >= 2 && y < 10)) ||
+              (x == 91 && (y >= 2 && y < 10)) ||
+              (x == 92 && (y >= 2 && y < 10)) ||
+              (x == 94 && (y >= 2 && y < 10)) ||
+              (x == 95 && (y >= 2 && y < 10)) ||
+              ((x >= 91 && x < 96) && (y == 2 || y == 3 || y == 8 || y == 9)));
+     assign eleven = 
+              (((x == 88) && (y >= 2) && (y < 10)) || 
+              ((x == 89) && (y >= 2) && (y < 10)) || 
+              ((x == 91) && (y >= 2) && (y < 10)) || 
+              ((x == 92) && (y >= 2) && (y < 10))) ;
+     assign twelve = 
+              ((x == 88 && y >= 2 && y < 10) || (x == 89 && y >= 2 && y < 10) ||
+              ((x >= 91 && x < 96) && (y == 2 || y == 3 || y == 5 || y == 6 || y == 8 || y == 9)) ||
+              ((x == 94 && y >= 2 && y < 7) || (x == 95 && y >= 2 && y < 7)) ||
+              ((x == 91 || x == 92) && (y >= 5 && y < 10))) ;
+     assign thirteen = 
+               ((x == 88 && y >= 2 && y < 10) ||
+               (x == 89 && y >= 2 && y < 10) ||
+               ((x >= 91 && x < 96) && (y == 2 || y == 3 || y == 5 || y == 6 || y == 8 || y == 9)) ||
+               ((x == 94 || x == 95) && (y >= 2 && y < 10))) ;
+     assign fourteen = 
+              ((x == 88 && y >= 2 && y < 10) || (x == 89 && y >= 2 && y < 10) ||
+              ((x >= 91 && x < 96) && (y == 5 || y == 6)) ||
+              ((x == 94 || x == 95) && y >= 2 && y < 10) ||
+              ((x == 91 || x == 92) && y >= 2 && y < 7)) ;
+      assign fifteen = ((x == 88 || x == 89) && (y >= 2 && y < 10)) ||
+                       ((x >= 91 && x < 96) && (y == 2 || y == 3 || y == 5 || y == 6 || y == 8 || y == 9)) ||
+                       ((x == 94 || x == 95) && (y >= 5 && y < 10)) ||
+                       ((x == 91 || x == 92) && (y >= 2 && y < 7));
+      assign sixteen = ((x == 88 && y >= 2 && y < 10) || 
+                       (x == 89 && y >= 2 && y < 10) || 
+                       ((x >= 91 && x < 96) && (y == 2 || y == 3)) || 
+                       (x == 91 && y >= 2 && y < 10) || 
+                       (x == 92 && y >= 2 && y < 10) || 
+                       ((x >= 91 && x < 96) && y == 9) || 
+                       ((x >= 91 && x < 96) && y == 6) || 
+                       (x == 95 && y >= 6 && y < 10)); 
+      assign seventeen = ((((x == 88 || x == 89 || x == 94 || x == 95 ) && (y >= 2 && y < 10)) 
+                        || ((x >= 91 && x < 96) && y == 2))
+                        || ((x == 91 || x == 92) && (y >= 2 && y < 5)));
+      assign eighteen = (((x == 88 || x == 89 || x == 94 || x == 95 || x == 91 || x == 92) && (y >= 2 && y < 10)) ||
+                        (x >= 91 && x < 96 && (y == 2 || y == 5 || y == 6)) ||
+                        (x >= 91 && x < 96 && y == 9)) ;
+      assign nineteen = (((x == 88 || x == 89 || x == 94 || x == 95) && (y >= 2 && y < 10))  || 
+                         ((x >= 91 && x < 96) && (y == 2 || y == 6)) ||
+                         ((x == 91 || x == 92) && (y >= 2 && y < 7)));
+      assign twenty = (((x >= 85) && (x < 88) && (y == 2))
+                       || ((x >= 85) && (x < 90) && (y == 3))
+                       || ((x == 89) && (y >= 2) && (y < 7))
+                       || ((x == 88) && (y >= 2) && (y < 7))
+                       || ((x >= 85) && (x < 90) && (y == 5))
+                       || ((x >= 85) && (x < 90) && (y == 6))
+                       || ((x == 85) && (y >= 5) && (y < 10))
+                       || ((x == 86) && (y >= 5) && (y < 10))
+                       || ((x >= 85) && (x < 90) && (y == 8))
+                       || ((x >= 85) && (x < 90) && (y == 9))
+                       || ((x >= 91) && (x < 96) && (y == 2))
+                       || ((x >= 91) && (x < 96) && (y == 3))
+                       || ((x == 91) && (y >= 2) && (y < 10))
+                       || ((x == 92) && (y >= 2) && (y < 10))
+                       || ((x == 95) && (y >= 2) && (y < 10))
+                       || ((x == 94) && (y >= 2) && (y < 10))
+                       || ((x >= 91) && (x < 96) && (y == 8))
+                       || ((x >= 91) && (x < 96) && (y == 9)));
 
         
     always @(posedge clk) begin
         if (line) game_pixel_data <= BLUE;
-//        else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
+        else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
 //        else if (u_arrow && shape_a) game_pixel_data <= shape_a_colour;
         else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
         else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
         else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
-//        else if (c_arrow) begin
-        else if (c_arrow == moving_shape_a && shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
+//        else if (moving_shape_a==c_arrow) && shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
+//        else if (shape_a) begin
+//            if ((moving_shape_a == c_arrow) && moving_shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
+//            else if ((moving_shape_a == d_arrow) && moving_shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
+//            else if ((moving_shape_a == l_arrow) && moving_shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
+//            else if ((moving_shape_a == r_arrow) && moving_shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
+//            else if ((moving_shape_a == u_arrow) && moving_shape_a) game_pixel_data <= UP_ARROW_COLOUR;
+            
 //            else if (moving_shape_b && shape_b) game_pixel_data <= CENTRE_ARROW_COLOUR;
 //            else if (moving_shape_c && shape_c) game_pixel_data <= CENTRE_ARROW_COLOUR;
 //            else if (moving_shape_d && shape_d) game_pixel_data <= CENTRE_ARROW_COLOUR;
 //        end
 //        else if (d_arrow) begin
-        else if (d_arrow == moving_shape_a && shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
-//            else if (moving_shape_b && shape_b) game_pixel_data <= DOWN_ARROW_COLOUR;
-//            else if (moving_shape_c && shape_c) game_pixel_data <= DOWN_ARROW_COLOUR;
-//            else if (moving_shape_d && shape_d) game_pixel_data <= DOWN_ARROW_COLOUR;
+//            if ((moving_shape_a) && shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
+////            else if (moving_shape_b && shape_b) game_pixel_data <= DOWN_ARROW_COLOUR;
+////            else if (moving_shape_c && shape_c) game_pixel_data <= DOWN_ARROW_COLOUR;
+////            else if (moving_shape_d && shape_d) game_pixel_data <= DOWN_ARROW_COLOUR;
 //        end
 //        else if (l_arrow) begin
-        else if (l_arrow == moving_shape_a && shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
-//            else if (moving_shape_b && shape_b) game_pixel_data <= LEFT_ARROW_COLOUR;
-//            else if (moving_shape_c && shape_c) game_pixel_data <= LEFT_ARROW_COLOUR;
-//            else if (moving_shape_d && shape_d) game_pixel_data <= LEFT_ARROW_COLOUR;
+//            if ((moving_shape_a) && shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
+////            else if (moving_shape_b && shape_b) game_pixel_data <= LEFT_ARROW_COLOUR;
+////            else if (moving_shape_c && shape_c) game_pixel_data <= LEFT_ARROW_COLOUR;
+////            else if (moving_shape_d && shape_d) game_pixel_data <= LEFT_ARROW_COLOUR;
 //        end
 //        else if (r_arrow) begin
-        else if (r_arrow == moving_shape_a && shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//            else if (moving_shape_b && shape_b) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//            else if (moving_shape_c && shape_c) game_pixel_data <= RIGHT_ARROW_COLOUR;
-//            else if (moving_shape_d && shape_d) game_pixel_data <= RIGHT_ARROW_COLOUR;
+//            if ((moving_shape_a) && shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
+////            else if (moving_shape_b && shape_b) game_pixel_data <= RIGHT_ARROW_COLOUR;
+////            else if (moving_shape_c && shape_c) game_pixel_data <= RIGHT_ARROW_COLOUR;
+////            else if (moving_shape_d && shape_d) game_pixel_data <= RIGHT_ARROW_COLOUR;
 //        end
 //        else if (u_arrow) begin
-        else if (u_arrow == moving_shape_a && shape_a) game_pixel_data <= UP_ARROW_COLOUR;
-//            else if (moving_shape_b && shape_b) game_pixel_data <= UP_ARROW_COLOUR;
-//            else if (moving_shape_c && shape_c) game_pixel_data <= UP_ARROW_COLOUR;
-//            else if (moving_shape_d && shape_d) game_pixel_data <= UP_ARROW_COLOUR;
+//            if ((moving_shape_a) && shape_a) game_pixel_data <= UP_ARROW_COLOUR;
+////            else if (moving_shape_b && shape_b) game_pixel_data <= UP_ARROW_COLOUR;
+////            else if (moving_shape_c && shape_c) game_pixel_data <= UP_ARROW_COLOUR;
+////            else if (moving_shape_d && shape_d) game_pixel_data <= UP_ARROW_COLOUR;
 //        end
+        //else if ((d_arrow == moving_shape_a) && shape_a) game_pixel_data <= DOWN_ARROW_COLOUR;
+//        else if ((l_arrow == moving_shape_a) && shape_a) game_pixel_data <= LEFT_ARROW_COLOUR;
+//        else if ((r_arrow == moving_shape_a) && shape_a) game_pixel_data <= RIGHT_ARROW_COLOUR;
+//        else if ((u_arrow == moving_shape_a) && shape_a) game_pixel_data <= UP_ARROW_COLOUR;
         else if (plus_zero && zeroFlag) game_pixel_data <= RED;
         else if (plus_one && oneFlag) game_pixel_data <= YELLOW;
         else if (plus_two && twoFlag) game_pixel_data <= BLUE;
         else if (plus_three && threeFlag) game_pixel_data <= GREEN;
+        else if (secondsCounter == 0 && twenty) game_pixel_data <= WHITE;
+        else if (secondsCounter == 1 && nineteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 2 && eighteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 3 && seventeen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 4 && sixteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 5 && fifteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 6 && fourteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 7 && thirteen) game_pixel_data <= WHITE;
+        else if (secondsCounter == 8 && twelve) game_pixel_data <= WHITE;
+        else if (secondsCounter == 9 && eleven) game_pixel_data <= WHITE;
+        else if (secondsCounter == 10 && ten) game_pixel_data <= WHITE;
+        else if (secondsCounter == 11 && nine) game_pixel_data <= WHITE;
+        else if (secondsCounter == 12 && eight) game_pixel_data <= WHITE;
+        else if (secondsCounter == 13 && seven) game_pixel_data <= WHITE;
+        else if (secondsCounter == 14 && six) game_pixel_data <= WHITE;
+        else if (secondsCounter == 15 && five) game_pixel_data <= WHITE;
+        else if (secondsCounter == 16 && four) game_pixel_data <= WHITE;
+        else if (secondsCounter == 17 && three) game_pixel_data <= WHITE;
+        else if (secondsCounter == 18 && two) game_pixel_data <= WHITE;
+        else if (secondsCounter == 19 && one) game_pixel_data <= WHITE;
+        else if (secondsCounter == 20 && zero) game_pixel_data <= WHITE;
         else game_pixel_data <= BLACK;
     end
     
