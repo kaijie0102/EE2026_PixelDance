@@ -322,7 +322,7 @@ module ui(
                         correct_buttonA <= 2;
                         moving_shape_a <= l_arrowA;
                         if (y_pos_a < 5) shape_a_colour <= LEFT_ARROW_COLOUR;
-                     end
+                    end
                     4'b0011: begin
                         correct_buttonA <= 3;
                         moving_shape_a <= r_arrowA;
@@ -450,13 +450,18 @@ module ui(
                 endcase
             end
             
-        
             // speed of "release" of shapes from the top into the screen
+            /*
+            if (difficulty == 0) drop_counter_max = 300_000_000;
+            else if (difficulty == 1) drop_counter_max = 100_000_000;
+            else if (difficulty == 2) drop_counter_max = 50_000_000;
+            */
+            
+//            drop_counter <= (drop_counter == drop_counter_max) ? 0 : drop_counter + 1;
             drop_counter <= (drop_counter == 100_000_000) ? 0 : drop_counter + 1;
             if (drop_counter == 0) begin
                 if (~shape_a) begin 
                     shape_a <= 1;
-                    
                 end
                 else if (~shape_b) begin
                     shape_b <= 1;
@@ -521,7 +526,7 @@ module ui(
                 end
                 
             end
-            else if ((y_pos_b > y_pos_a && y_pos_b > y_pos_c && y_pos_b > y_pos_d) && (y_pos_b < line_y + 3) && ~(shape_a_colour == BLACK)) begin
+            else if ((y_pos_b > y_pos_a && y_pos_b > y_pos_c && y_pos_b > y_pos_d) && (y_pos_b < line_y + 3)) begin
                 y_lowest = y_pos_b;
                 x_lowest = random_x_b;
                 y_point_display = y_pos_b;
@@ -537,7 +542,7 @@ module ui(
                     end
                 end 
             end
-            else if ((y_pos_c > y_pos_a && y_pos_c > y_pos_b && y_pos_c > y_pos_d) && (y_pos_c < line_y + 3)  && ~(shape_a_colour == BLACK)) begin
+            else if ((y_pos_c > y_pos_a && y_pos_c > y_pos_b && y_pos_c > y_pos_d) && (y_pos_c < line_y + 3) ) begin
                  y_lowest = y_pos_c;
                  x_lowest = random_x_c;
                  y_point_display = y_pos_c;
@@ -553,7 +558,7 @@ module ui(
                      end
                  end
             end
-            else if ((y_pos_d > y_pos_a && y_pos_d > y_pos_b && y_pos_d > y_pos_c) && (y_pos_d < line_y + 3) && ~(shape_a_colour == BLACK)) begin
+            else if ((y_pos_d > y_pos_a && y_pos_d > y_pos_b && y_pos_d > y_pos_c) && (y_pos_d < line_y + 3)) begin
                  y_lowest = y_pos_d;
                  x_lowest = random_x_d;
                  y_point_display = y_pos_d;
@@ -666,18 +671,19 @@ module ui(
     // Display Score
     display_score score_display (.clk(clk), .score(score), .highscore(highscore), .an(an), .seg(seg));
 
-    // create new shape every 3 sec
     // For every shape: y_pos_a, random_x, shape_a (visibility), arrow_a, a_pressed
     reg shape_a = 0, shape_b = 0, shape_c = 0, shape_d = 0;
     reg [15:0] shape_a_colour = ORANGE, shape_b_colour = RED, shape_c_colour = GREEN, shape_d_colour = PURPLE;
-//    reg [15:0] shape_a_colour, shape_b_colour, shape_c_colour, shape_d_colour;
     reg [31:0] drop_counter = 1;
+    reg [31:0] drop_counter_max;
+    
     
     // Movement code block
     reg [3:0] speed_store = 2; // 0: 90px/s 1: 45 px/s 2: 30px/sec 5: 15px/sec
     reg [3:0] speed_counter = 0;
     reg [12:0] y_pos_a, y_pos_b, y_pos_c, y_pos_d;
     reg [12:0] y_pos_centre = 0, y_pos_down = 0, y_pos_left = 0, y_pos_right = 0, y_pos_up = 0;
+    reg [1:0] difficulty = 1;
     always @(posedge clk_90pix) begin
         // setting speed
         if (~sw[13]) begin
@@ -686,6 +692,21 @@ module ui(
         else if (sw[13]) begin
             speed_store <= 6; // count 2 beats to make frequency 90px/s -> 30px/s when btnl or btnr is pressed
         end
+        
+        /*
+        if (difficulty == 0) begin
+            // easy
+            speed_store = 5;
+        end
+        if (difficulty == 1) begin
+            // medium
+            speed_store = 2;
+        end
+        if (difficulty == 2) begin
+            // hard
+            speed_store = 0;
+        end
+        */
         
         // drop the shape from the top
         if (~shape_a) y_pos_a <= 0; // for every new random x, reset y to 0
