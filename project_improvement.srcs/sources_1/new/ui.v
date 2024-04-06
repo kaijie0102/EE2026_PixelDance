@@ -145,6 +145,7 @@ module ui(
     
     // Pressing to make shapes "disappear"
     reg [6:0] x_lowest, y_lowest; // x and y coordinate of plus signs relative to origin
+    reg [6:0] x_point_display, y_point_display; // x and y for point display
     reg a_pressed, b_pressed, c_pressed, d_pressed, button_pressed;
     reg [31:0] dbCount = 0; // debouncing
     reg btn_ready = 1; // debouncing
@@ -167,7 +168,7 @@ module ui(
     reg twoFlag = 0;
     reg threeFlag = 0;
     reg pointFlag = 0;
-    reg [31:0] pt_delay_counter;
+    reg [31:0] pt_delay_counter = 1;
     reg correct_button = 0;
     
 //    {0: centre, 1: down, 2: left, 3: right, 4: up}
@@ -288,6 +289,11 @@ module ui(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///////////////// Game Logic ////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (sw[14]) begin // toggle up and down to restart game
+            finishGameFlag = 1;
+            highscoreBeatenFlag = 0;
+        end
+        
         if (interface_state == 4'b0111 && finishGameFlag == 0) begin
             highscoreBeatenFlag = 0;
             finishGameCounter <= (finishGameCounter == 2_000_000_000) ? 0 : finishGameCounter + 1;
@@ -305,32 +311,32 @@ module ui(
                     4'b0000: begin
                         correct_buttonA <= 0;
                         moving_shape_a <= c_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= CENTRE_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= CENTRE_ARROW_COLOUR;
                     end
                     4'b0001: begin
                         correct_buttonA <= 1;
                         moving_shape_a <= d_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= DOWN_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= DOWN_ARROW_COLOUR;
                     end
                     4'b0010: begin
                         correct_buttonA <= 2;
                         moving_shape_a <= l_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= LEFT_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= LEFT_ARROW_COLOUR;
                      end
                     4'b0011: begin
                         correct_buttonA <= 3;
                         moving_shape_a <= r_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= RIGHT_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= RIGHT_ARROW_COLOUR;
                      end
                     4'b0100: begin
                         correct_buttonA <= 4;
                         moving_shape_a <= u_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= UP_ARROW_COLOUR;
                     end
                     default: begin
                         correct_buttonA <= 4;
                         moving_shape_a <= u_arrowA;
-                        if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_a < 5) shape_a_colour <= UP_ARROW_COLOUR;
                     end
                 endcase
             end
@@ -341,45 +347,33 @@ module ui(
                 case(random_shapeB) 
                     4'b0000: begin
                         moving_shape_b <= c_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= CENTRE_ARROW_COLOUR;
-                     //   random_x_centre <= random_x_b;
-                      //  y_pos_centre <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= CENTRE_ARROW_COLOUR;
                         correct_buttonB <= 0;
                     end
                     4'b0001: begin
                         correct_buttonB <= 1;
                         moving_shape_b <= d_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= DOWN_ARROW_COLOUR;
-                        // random_x_down <= random_x_b;
-                        // y_pos_down <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= DOWN_ARROW_COLOUR;
                     end
                     4'b0010: begin
                         correct_buttonB <= 2;
                         moving_shape_b <= l_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= LEFT_ARROW_COLOUR;
-//                       0random_x_left <= random_x_b;
-  //                      y_pos_left <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= LEFT_ARROW_COLOUR;
                         end
                     4'b0011: begin
                         correct_buttonB <= 3;
                         moving_shape_b <= r_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= RIGHT_ARROW_COLOUR;
-//                        random_x_right <= random_x_b;
-        //                y_pos_right <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= RIGHT_ARROW_COLOUR;
                         end
                     4'b0100: begin
                         correct_buttonB <= 4;
                         moving_shape_b <= u_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= UP_ARROW_COLOUR;
-//                        random_x_up <= random_x_b;
-      //                  y_pos_up <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= UP_ARROW_COLOUR;
                     end
                     default: begin
                         correct_buttonB <= 4;                    
                         moving_shape_b <= u_arrowB;
-                        if (y_pos_b == 0) shape_b_colour <= UP_ARROW_COLOUR;
-    //                    random_x_up <= random_x_b;
- //                       y_pos_up <= y_pos_b;
+                        if (y_pos_b < 5) shape_b_colour <= UP_ARROW_COLOUR;
                     end
                 endcase
             end
@@ -390,32 +384,32 @@ module ui(
                     4'b0000: begin
                         correct_buttonC <= 0;
                         moving_shape_c <= c_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= CENTRE_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= CENTRE_ARROW_COLOUR;
                     end
                     4'b0001: begin
                         correct_buttonC <= 1;
                         moving_shape_c <= d_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= DOWN_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= DOWN_ARROW_COLOUR;
                     end
                     4'b0010: begin
                         correct_buttonC <= 2;
                         moving_shape_c <= l_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= LEFT_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= LEFT_ARROW_COLOUR;
                         end
                     4'b0011: begin
                         correct_buttonC <= 3;
                         moving_shape_c <= r_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= RIGHT_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= RIGHT_ARROW_COLOUR;
                         end
                     4'b0100: begin
                         correct_buttonC <= 4;
                         moving_shape_c <= u_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= UP_ARROW_COLOUR;
                     end
                     default: begin
                         correct_buttonC <= 4;
                         moving_shape_c <= u_arrowC;
-                        if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_c < 5) shape_c_colour <= UP_ARROW_COLOUR;
                     end
                 endcase
             end
@@ -426,32 +420,32 @@ module ui(
                     4'b0000: begin
                         correct_buttonD <= 0;
                         moving_shape_d <= c_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= CENTRE_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= CENTRE_ARROW_COLOUR;
                     end
                     4'b0001: begin
                         correct_buttonD <= 1;
                         moving_shape_d <= d_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= DOWN_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= DOWN_ARROW_COLOUR;
                     end
                     4'b0010: begin
                         correct_buttonD <= 2;
                         moving_shape_d <= l_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= LEFT_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= LEFT_ARROW_COLOUR;
                         end
                     4'b0011: begin
                         correct_buttonD <= 3;
                         moving_shape_d <= r_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= RIGHT_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= RIGHT_ARROW_COLOUR;
                         end
                     4'b0100: begin
                         correct_buttonD <= 4;
                         moving_shape_d <= u_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= UP_ARROW_COLOUR;
                     end
                     default: begin
                         correct_buttonD <= 4;
                         moving_shape_d <= u_arrowD;
-                        if (y_pos_d == 0) shape_d_colour <= UP_ARROW_COLOUR;
+                        if (y_pos_d < 5) shape_d_colour <= UP_ARROW_COLOUR;
                     end
                 endcase
             end
@@ -466,15 +460,12 @@ module ui(
                 end
                 else if (~shape_b) begin
                     shape_b <= 1;
-//                    shape_b_colour <= RED;
                 end
                 else if (~shape_c) begin
                     shape_c <= 1;
-//                    shape_c_colour <= GREEN;
                 end
                 else if (~shape_d) begin
                     shape_d <= 1;
-//                    shape_d_colour <= PURPLE;
                 end
             end
 
@@ -513,25 +504,28 @@ module ui(
                     shape_d_colour <= BLACK;
                 end   
             end    
-            
-            // Keep track of lowest dropping item
+            ////////////////////////////////////////////////////////////
+            // Keep track of lowest dropping item ////////////////////
+            ////////////////////////////////////////////////////////////
             if ((y_pos_a > y_pos_b && y_pos_a > y_pos_c && y_pos_a > y_pos_d) && (y_pos_a < line_y + 3)) begin
                 y_lowest = y_pos_a;
                 x_lowest = random_x_a;
+                y_point_display = y_pos_a;
+                x_point_display = random_x_a;
                 
                 // pass on lowest
                 if (shape_b && (shape_a_colour == BLACK)) begin 
+                //y_point_display = y_pos_b;
                     y_lowest = y_pos_b;
                     x_lowest = random_x_b;
                 end
-                else begin
-                    y_lowest = 0;
-                    x_lowest = 0;                     
-                end
+                
             end
             else if ((y_pos_b > y_pos_a && y_pos_b > y_pos_c && y_pos_b > y_pos_d) && (y_pos_b < line_y + 3) && ~(shape_a_colour == BLACK)) begin
                 y_lowest = y_pos_b;
                 x_lowest = random_x_b;
+                y_point_display = y_pos_b;
+                x_point_display = random_x_b;
                 if (shape_b_colour == BLACK) begin // if b is black, pass on the lowest
                     if (shape_c) begin 
                         y_lowest = y_pos_c;
@@ -546,17 +540,29 @@ module ui(
             else if ((y_pos_c > y_pos_a && y_pos_c > y_pos_b && y_pos_c > y_pos_d) && (y_pos_c < line_y + 3)  && ~(shape_a_colour == BLACK)) begin
                  y_lowest = y_pos_c;
                  x_lowest = random_x_c;
-                 if (shape_d) begin 
-                     y_lowest = y_pos_d;
-                     x_lowest = random_x_d;
+                 y_point_display = y_pos_c;
+                 x_point_display = random_x_c;
+                 if (shape_c_colour == BLACK) begin
+                     if (shape_d) begin 
+                         y_lowest = y_pos_d;
+                         x_lowest = random_x_d;
+                     end
+                     else if (shape_a) begin 
+                         y_lowest = y_pos_a;
+                         x_lowest = random_x_a;
+                     end
                  end
             end
             else if ((y_pos_d > y_pos_a && y_pos_d > y_pos_b && y_pos_d > y_pos_c) && (y_pos_d < line_y + 3) && ~(shape_a_colour == BLACK)) begin
                  y_lowest = y_pos_d;
                  x_lowest = random_x_d;
-                 if (shape_a) begin 
-                      y_lowest = y_pos_a;
-                      x_lowest = random_x_a;
+                 y_point_display = y_pos_d;
+                 x_point_display = random_x_d;
+                 if (shape_d_colour == BLACK) begin
+                    if (shape_a) begin 
+                        y_lowest = y_pos_a;
+                        x_lowest = random_x_a;
+                    end
                  end
             end
     
@@ -572,6 +578,7 @@ module ui(
             
             /////////// Button pressed ///////////
             if (btn_ready && justStartGameFlag == 0 && (btnC || btnD || btnL || btnR || btnU)) begin
+                pt_delay_counter = 1;
                 btn_ready = 0;
     
                 // TODO: If button is pressed and button matches the "shape" of the lowest 
@@ -673,10 +680,10 @@ module ui(
     reg [12:0] y_pos_centre = 0, y_pos_down = 0, y_pos_left = 0, y_pos_right = 0, y_pos_up = 0;
     always @(posedge clk_90pix) begin
         // setting speed
-        if (~sw[14]) begin
+        if (~sw[13]) begin
             speed_store <= 2; // count 1 beats to make frequency 90px/s -> 45px/s 
         end
-        else if (sw[14]) begin
+        else if (sw[13]) begin
             speed_store <= 6; // count 2 beats to make frequency 90px/s -> 30px/s when btnl or btnr is pressed
         end
         
@@ -712,21 +719,21 @@ module ui(
             y_pos_c <= (y_pos_c < 63) ? y_pos_c + 1 : 0;
             if (y_pos_c == 62) begin
                 c_ready_flag = 1;
-//                shapeC_ready_flag = 1;
+                shapeC_ready_flag = 1;
             end
             else begin
                 c_ready_flag = 0;
-//                shapeC_ready_flag = 0;
+                shapeC_ready_flag = 0;
             end
 
             y_pos_d <= (y_pos_d < 63) ? y_pos_d + 1 : 0;
             if (y_pos_d == 62) begin
                 d_ready_flag = 1;
-//                shapeD_ready_flag = 1;
+                shapeD_ready_flag = 1;
             end
             else begin
                 d_ready_flag = 0;   
-//                shapeD_ready_flag = 0;
+                shapeD_ready_flag = 0;
             end
 
         end
@@ -775,7 +782,7 @@ module ui(
     wire plus_zero, plus_one, plus_two, plus_three;
     wire c_arrow, d_arrow, l_arrow, r_arrow, u_arrow;
     wire c_arrowA, d_arrowA, l_arrowA, r_arrowA, u_arrowA;
-    reg [7:0] line_y = 50;
+    reg [7:0] line_y = 55;
     assign moving_square_a = (x >= random_x_a && x < random_x_a + 5 ) && (y >= y_pos_a && y < y_pos_a + 5);
     assign moving_square_b = (x >= random_x_b && x < random_x_b + 5 ) && (y >= y_pos_b && y < y_pos_b + 5);
     assign moving_square_c = (x >= random_x_c && x < random_x_c + 5 ) && (y >= y_pos_c && y < y_pos_c + 5);
@@ -787,18 +794,27 @@ module ui(
 //                || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
 //                || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
 //                || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
-    assign plus_zero = (((x >= 8 + x_lowest) && (x < 17 + x_lowest) && (y == 4 + y_lowest))
-            || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
-            || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
-            || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
+//    assign plus_zero = (((x >= 8 + x_lowest) && (x < 17 + x_lowest) && (y == 4 + y_lowest))
+//            || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
+//            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
+//            || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
+//            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
+//            || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
+    assign plus_zero = (((x >= 8 + x_point_display) && (x < 17 + x_point_display) && (y == 4 + y_point_display))
+        || ((x == 12 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)) 
+        || ((x >= 19 + x_point_display) && (x < 25 + x_point_display) && (y == y_point_display)) 
+        || ((x == 19 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)) 
+        || ((x >= 19 + x_point_display) && (x < 25 + x_point_display) && (y == 8 + y_point_display)) 
+        || ((x == 24 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)));
 //    assign plus_one = (((x >= 4 + x_lowest) && (x < 11 + x_lowest) && (y == 5 + y_lowest))
 //        || ((x == 7 + x_lowest) && (y >= 2 + y_lowest) && (y < 9 + y_lowest))
 //        || ((x == 13 + x_lowest) && (y >= 2 + y_lowest) && y < 9 + y_lowest));
-    assign plus_one = (((x >= 8 + x_lowest) && (x < 15 + x_lowest) && (y == 3 + y_lowest))
-        || ((x == 11 + x_lowest) && (y >= y_lowest) && (y < 7 + y_lowest))
-        || ((x == 17 + x_lowest) && (y >= y_lowest) && y < 7 + y_lowest));
+//    assign plus_one = (((x >= 8 + x_lowest) && (x < 15 + x_lowest) && (y == 3 + y_lowest))
+//        || ((x == 11 + x_lowest) && (y >= y_lowest) && (y < 7 + y_lowest))
+//        || ((x == 17 + x_lowest) && (y >= y_lowest) && y < 7 + y_lowest));
+    assign plus_one = (((x >= 8 + x_point_display) && (x < 15 + x_point_display) && (y == 3 + y_point_display))
+        || ((x == 11 + x_point_display) && (y >= y_point_display) && (y < 7 + y_point_display))
+        || ((x == 17 + x_point_display) && (y >= y_point_display) && y < 7 + y_point_display));
 //    assign plus_two = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
 //        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
@@ -806,25 +822,38 @@ module ui(
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
 //        || ((x == 14 + x_lowest) && (y >= 5 + y_lowest) && (y < 10 + y_lowest))
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-    assign plus_two = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
-        || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
-        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
-        || ((x == 22 + x_lowest) && (y >= y_lowest - 1) && (y < 4 + y_lowest)) 
-        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
-        || ((x == 18 + x_lowest) && (y >= 3 + y_lowest) && (y < 8 + y_lowest))
-        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
+//    assign plus_two = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
+//        || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
+//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
+//        || ((x == 22 + x_lowest) && (y >= y_lowest - 1) && (y < 4 + y_lowest)) 
+//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
+//        || ((x == 18 + x_lowest) && (y >= 3 + y_lowest) && (y < 8 + y_lowest))
+//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
+    assign plus_two = (((x >= 7 + x_point_display) && (x < 16 + x_point_display) && (y == 3 + y_point_display))
+        || ((x == 11 + x_point_display) && (y >= y_point_display - 1) && (y < 8 + y_point_display)) 
+        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == y_point_display - 1)) 
+        || ((x == 22 + x_point_display) && (y >= y_point_display - 1) && (y < 4 + y_point_display)) 
+        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 3 + y_point_display)) 
+        || ((x == 18 + x_point_display) && (y >= 3 + y_point_display) && (y < 8 + y_point_display))
+        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 7 + y_point_display)));
 //    assign plus_three = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
 //        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
 //        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
 //        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-    assign plus_three = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
-       || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
-       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
-       || ((x == 22 + x_lowest) && (y >=  y_lowest - 1) && (y < 8 + y_lowest)) 
-       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
-       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
+//    assign plus_three = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
+//       || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
+//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
+//       || ((x == 22 + x_lowest) && (y >=  y_lowest - 1) && (y < 8 + y_lowest)) 
+//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
+//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
+    assign plus_three = (((x >= 7 + x_point_display) && (x < 16 + x_point_display) && (y == 3 + y_point_display))
+       || ((x == 11 + x_point_display) && (y >= y_point_display - 1) && (y < 8 + y_point_display)) 
+       || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == y_point_display - 1)) 
+       || ((x == 22 + x_point_display) && (y >=  y_point_display - 1) && (y < 8 + y_point_display)) 
+       || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 3 + y_point_display)) 
+       || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 7 + y_point_display)));
 
     // you will not see 2 of the same arrows on the screen at the same time since the shapes are shared
     assign u_arrowA = ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
