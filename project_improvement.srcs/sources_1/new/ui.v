@@ -1,5 +1,14 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
+// CONTENT PAGE
+// 199 - Selection of Interface
+// 283 - Game Logic
+// 535 - Points Tracking
+// 598 - Game Speed
+// 680 - Game Randomness
+// 716 - Game Display
+// 962 - OLED Display
+
 // Company: 
 // Engineer: 
 // 
@@ -152,6 +161,7 @@ module ui(
     reg [31:0] finishGameCounter = 0;
     reg [31:0] oneSecondCounter = 0; // counter for 1 second
     reg [31:0] secondsCounter = 0; // count from 0 to 20
+    reg highscoreBeatenFlag = 1;
     reg zeroFlag = 0;
     reg oneFlag = 0;
     reg twoFlag = 0;
@@ -160,6 +170,7 @@ module ui(
     reg [31:0] pt_delay_counter;
     reg correct_button = 0;
 //    reg correct_buttonA = 0, correct_buttonB = 0, correct_buttonC = 0, correct_buttonD = 0;
+
     
     reg [3:0] interface_state = 0;
     always @(posedge clk) begin
@@ -187,8 +198,10 @@ module ui(
             end
             
             // Setting high score
-            if (highscore < score)
+            if (highscore < score) begin
                 highscore = score;
+                highscoreBeatenFlag = 1;
+            end
         end
         
         ////////////////////////////////
@@ -246,14 +259,14 @@ module ui(
 //                  interface_state <= 4'b1000; // Transition to Next State
 //                end
                 oled_data = game_pixel_data;
-                if (finishGameFlag && highscore >= score) begin
+                if (finishGameFlag && ~highscoreBeatenFlag) begin
                     interface_state <= 4'b1000; // Transition to Try Again State
                 end
-                else if (finishGameFlag && highscore < score) begin
+                else if (finishGameFlag && highscoreBeatenFlag) begin
                     interface_state <= 4'b1001; // Transition to high score beaten interface
                 end
             end
-            4'b1000: begin // Beaten High Score Interface
+            4'b1000: begin // Try Again Interface
 //                oled_data = tryAgain_pixel_data;
 //                if (btnC) begin
 //                  interface_state <= 4'b1001; // Transition to Next State
@@ -283,6 +296,7 @@ module ui(
         ///////////////// Game Logic ////////////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (interface_state == 4'b0111 && finishGameFlag == 0) begin
+            highscoreBeatenFlag = 0;
             finishGameCounter <= (finishGameCounter == 2_000_000_000) ? 0 : finishGameCounter + 1;
             finishGameFlag = (finishGameCounter == 2_000_000_000) ? 1 : 0;
             
@@ -291,60 +305,263 @@ module ui(
             
             justStartGameFlag = (finishGameCounter >= 50_000_000) ? 0 : 1;
             
+            random_shapeA = random_gen_shapeA;
             // generating random_shapes for shape A. {0: centre, 1: down, 2: left, 3: right, 4: up}
-            case(random_shape) 
-                4'b0000: begin
-                    moving_shape_a <= c_arrow;
-//                    correct_buttonA = 
-                    shape_a_colour <= CENTRE_ARROW_COLOUR;
-                end
-                4'b0001: begin
-                    moving_shape_a <= d_arrow;
-                    shape_a_colour <= DOWN_ARROW_COLOUR;
-                end
-                4'b0010: begin
-                    moving_shape_a <= l_arrow;
-                    shape_a_colour <= LEFT_ARROW_COLOUR;
-                 end
-                4'b0011: begin
-                    moving_shape_a <= r_arrow;
-                    shape_a_colour <= RIGHT_ARROW_COLOUR;
-                 end
-                4'b0100: begin
-                    moving_shape_a <= u_arrow;
-                    shape_a_colour <= UP_ARROW_COLOUR;
-                end
-                default: begin
-                    moving_shape_a <= u_arrow;
-                    shape_a_colour <= UP_ARROW_COLOUR;
-                end
-            endcase
-            
+            if (shape_a) begin
+                case(random_shapeA) 
+                    4'b0000: begin
+                        moving_shape_a <= c_arrowA;
+                        shape_a_colour <= CENTRE_ARROW_COLOUR;
+                        random_x_centre <= random_x_a;
+                        y_pos_centre <= y_pos_a;
+                    end
+                    4'b0001: begin
+                        moving_shape_a <= d_arrowA;
+                        shape_a_colour <= DOWN_ARROW_COLOUR;
+                        random_x_down <= random_x_a;
+                        y_pos_down <= y_pos_a;
+                    end
+                    4'b0010: begin
+                        moving_shape_a <= l_arrowA;
+                        shape_a_colour <= LEFT_ARROW_COLOUR;
+                        random_x_left <= random_x_a;
+                        y_pos_left <= y_pos_a;
+                     end
+                    4'b0011: begin
+                        moving_shape_a <= r_arrowA;
+                        shape_a_colour <= RIGHT_ARROW_COLOUR;
+                        random_x_right <= random_x_a;
+                        y_pos_right <= y_pos_a;
+                     end
+                    4'b0100: begin
+//                        if (y_pos_up == 0) begin // check if its unused
+//                            led = 16'b00001_00000_000000;
+//                            moving_shape_a <= u_arrow;
+//                            shape_a_colour <= UP_ARROW_COLOUR;
+//                            random_x_up <= random_x_a;
+//                            y_pos_up <= y_pos_a;
+                            
+//                            if (y_pos_up == 62) begin
+//                                // the shape has reached the bottom, deem it unused
+//                                random_x_up <= 0;
+//                                y_pos_up <= 0;
+//                            end
+//                        end
+//                        else begin // transition to next arrow
+//                            random_shapeA = random_shapeA + 1;
+//                            led = 16'b00000_00001_000000;
+//                        end
+                        moving_shape_a <= u_arrowA;
+                        shape_a_colour <= UP_ARROW_COLOUR;
+                        random_x_up <= random_x_a;
+                        y_pos_up <= y_pos_a;
+                    end
+                    default: begin
+                        moving_shape_a <= u_arrow;
+                        shape_a_colour <= UP_ARROW_COLOUR;
+                        random_x_up <= random_x_a;
+                        y_pos_up <= y_pos_a;
+                    end
+                endcase
+            end
             /*
+            random_shapeB = random_gen_shapeB;
             case(random_shapeB) 
                 4'b0000: begin
-                    moving_shape_b <= c_arrow;
-                    shape_b_colour <= CENTRE_ARROW_COLOUR;
+                    if (y_pos_centre == 0) begin // check if its unused
+                        moving_shape_b <= c_arrow;
+                        shape_b_colour <= CENTRE_ARROW_COLOUR;
+                        random_x_centre <= random_x_b;
+                        y_pos_centre <= y_pos_b;
+                        
+                        if (y_pos_centre == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_centre <= 0;
+                            y_pos_centre <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeB = random_shapeB + 1;
+                    end
                 end
                 4'b0001: begin
-                    moving_shape_b <= d_arrow;
-                    shape_b_colour <= DOWN_ARROW_COLOUR;
+                    if (y_pos_down == 0) begin // check if its unused
+                        moving_shape_b <= d_arrow;
+                        shape_b_colour <= DOWN_ARROW_COLOUR;
+                        random_x_down <= random_x_b;
+                        y_pos_down <= y_pos_b;
+                        
+                        if (y_pos_down == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_down <= 0;
+                            y_pos_down <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeB = random_shapeB + 1;
+                    end
                 end
                 4'b0010: begin
-                    moving_shape_b <= l_arrow;
-                    shape_b_colour <= LEFT_ARROW_COLOUR;
+                    
+                    if (y_pos_left == 0) begin // check if its unused
+                        moving_shape_b <= l_arrow;
+                        shape_b_colour <= LEFT_ARROW_COLOUR;
+                        random_x_left <= random_x_b;
+                        y_pos_left <= y_pos_b;
+                        
+                        if (y_pos_left == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_left <= 0;
+                            y_pos_left <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeB = random_shapeB + 1;
+                    end
                  end
                 4'b0011: begin
-                    moving_shape_b <= r_arrow;
-                    shape_b_colour <= RIGHT_ARROW_COLOUR;
+                    
+                    if (y_pos_right == 0) begin // check if its unused
+                        moving_shape_b <= r_arrow;
+                        shape_b_colour <= RIGHT_ARROW_COLOUR;
+                        random_x_right <= random_x_b;
+                        y_pos_right <= y_pos_b;
+                        
+                        if (y_pos_right == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_right <= 0;
+                            y_pos_right <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeB = random_shapeB + 1;
+                    end
+                    
                  end
                 4'b0100: begin
-                    moving_shape_b <= u_arrow;
-                    shape_b_colour <= UP_ARROW_COLOUR;
+                    
+                    if (y_pos_up == 0) begin // check if its unused
+                        moving_shape_b <= u_arrow;
+                        shape_b_colour <= UP_ARROW_COLOUR;
+                        random_x_up <= random_x_b;
+                        y_pos_up <= y_pos_b;
+                        
+                        if (y_pos_up == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_up <= 0;
+                            y_pos_up <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeB = random_shapeB + 1;
+                    end
                 end
                 default: begin
                     moving_shape_b <= u_arrow;
                     shape_b_colour <= UP_ARROW_COLOUR;
+                    random_x_up <= random_x_b;
+                    y_pos_up <= y_pos_b;
+                end
+            endcase
+            */
+            
+            /*
+            random_shapeC = random_gen_shapeC;
+            case(random_shapeC) 
+                4'b0000: begin
+                    if (y_pos_centre == 0) begin // check if its unused
+                        moving_shape_c <= c_arrow;
+                        shape_c_colour <= CENTRE_ARROW_COLOUR;
+                        random_x_centre <= random_x_c;
+                        y_pos_centre <= y_pos_c;
+                        
+                        if (y_pos_centre == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_centre <= 0;
+                            y_pos_centre <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeC = random_shapeC + 1;
+                    end
+                end
+                4'b0001: begin
+                    if (y_pos_down == 0) begin // check if its unused
+                        moving_shape_c <= d_arrow;
+                        shape_c_colour <= DOWN_ARROW_COLOUR;
+                        random_x_down <= random_x_c;
+                        y_pos_down <= y_pos_c;
+                        
+                        if (y_pos_down == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_down <= 0;
+                            y_pos_down <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeC = random_shapeC + 1;
+                    end
+                end
+                4'b0010: begin
+                    
+                    if (y_pos_left == 0) begin // check if its unused
+                        moving_shape_c <= l_arrow;
+                        shape_c_colour <= LEFT_ARROW_COLOUR;
+                        random_x_left <= random_x_c;
+                        y_pos_left <= y_pos_c;
+                        
+                        if (y_pos_left == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_left <= 0;
+                            y_pos_left <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeC = random_shapeC + 1;
+                    end
+                 end
+                4'b0011: begin
+                    
+                    if (y_pos_right == 0) begin // check if its unused
+                        moving_shape_c <= r_arrow;
+                        shape_c_colour <= RIGHT_ARROW_COLOUR;
+                        random_x_right <= random_x_c;
+                        y_pos_right <= y_pos_c;
+                        
+                        if (y_pos_right == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_right <= 0;
+                            y_pos_right <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeC = random_shapeC + 1;
+                    end
+                    
+                 end
+                4'b0100: begin
+                    
+                    if (y_pos_up == 0) begin // check if its unused
+                        moving_shape_c <= u_arrow;
+                        shape_c_colour <= UP_ARROW_COLOUR;
+                        random_x_up <= random_x_c;
+                        y_pos_up <= y_pos_c;
+                        
+                        if (y_pos_up == 62) begin
+                            // the shape has reached the bottom, deem it unused
+                            random_x_up <= 0;
+                            y_pos_up <= 0;
+                        end
+                    end
+                    else begin // transition to next arrow
+                        random_shapeC = random_shapeC + 1;
+                    end
+                end
+                default: begin
+                    moving_shape_c <= u_arrow;
+                    shape_c_colour <= UP_ARROW_COLOUR;
+                    random_x_up <= random_x_c;
+                    y_pos_up <= y_pos_c;
                 end
             endcase
             */
@@ -355,99 +572,18 @@ module ui(
             if (drop_counter == 0) begin
                 if (~shape_a) begin 
                     shape_a <= 1;
-//                    shape_a_colour <= ORANGE;
                     
                 end
                 else if (~shape_b) begin
                     shape_b <= 1;
-                    // generating random_shapes
-//                    case(random_shape) 
-//                        4'b0000: begin
-//                            moving_shape_a <= c_arrow;
-//                            shape_a_colour <= CENTRE_ARROW_COLOUR;            
-//                        end
-//                        4'b0001: begin 
-//                            moving_shape_a <= d_arrow;   
-//                            shape_a_colour <= DOWN_ARROW_COLOUR;         
-//                        end
-//                        4'b0010: begin
-//                            moving_shape_a <= l_arrow; 
-//                            shape_a_colour <= LEFT_ARROW_COLOUR;           
-//                        end
-//                        4'b0011: begin
-//                            moving_shape_a <= r_arrow; 
-//                            shape_a_colour <= RIGHT_ARROW_COLOUR;           
-//                        end
-//                        4'b0100: begin
-//                            moving_shape_a <= u_arrow;  
-//                            shape_a_colour <= UP_ARROW_COLOUR;          
-//                        end
-//                        default: begin
-//                            moving_shape_a <= u_arrow;
-//                            shape_a_colour <= UP_ARROW_COLOUR;
-//                        end
-//                    endcase
                     shape_b_colour <= RED;
                 end
                 else if (~shape_c) begin
                     shape_c <= 1;
-//                    case(random_shape) 
-//                        4'b0000: begin
-//                            moving_shape_a <= c_arrow;
-//                            shape_a_colour <= CENTRE_ARROW_COLOUR;            
-//                        end
-//                        4'b0001: begin 
-//                            moving_shape_a <= d_arrow;   
-//                            shape_a_colour <= DOWN_ARROW_COLOUR;         
-//                        end
-//                        4'b0010: begin
-//                            moving_shape_a <= l_arrow; 
-//                            shape_a_colour <= LEFT_ARROW_COLOUR;           
-//                        end
-//                        4'b0011: begin
-//                            moving_shape_a <= r_arrow; 
-//                            shape_a_colour <= RIGHT_ARROW_COLOUR;           
-//                        end
-//                        4'b0100: begin
-//                            moving_shape_a <= u_arrow;  
-//                            shape_a_colour <= UP_ARROW_COLOUR;          
-//                        end
-//                        default: begin
-//                            moving_shape_a <= u_arrow;
-//                            shape_a_colour <= UP_ARROW_COLOUR;
-//                        end
-//                    endcase
                     shape_c_colour <= GREEN;
                 end
                 else if (~shape_d) begin
                     shape_d <= 1;
-                     // generating random_shapes
-//                    case(random_shape) 
-//                        4'b0000: begin
-//                            moving_shape_a <= c_arrow;
-//                            shape_a_colour <= CENTRE_ARROW_COLOUR;            
-//                        end
-//                        4'b0001: begin 
-//                            moving_shape_a <= d_arrow;   
-//                            shape_a_colour <= DOWN_ARROW_COLOUR;         
-//                        end
-//                        4'b0010: begin
-//                            moving_shape_a <= l_arrow; 
-//                            shape_a_colour <= LEFT_ARROW_COLOUR;           
-//                        end
-//                        4'b0011: begin
-//                            moving_shape_a <= r_arrow; 
-//                            shape_a_colour <= RIGHT_ARROW_COLOUR;           
-//                        end
-//                        4'b0100: begin
-//                            moving_shape_a <= u_arrow;  
-//                            shape_a_colour <= UP_ARROW_COLOUR;          
-//                        end
-//                        default: begin
-//                            moving_shape_a <= u_arrow;
-//                            shape_a_colour <= UP_ARROW_COLOUR;
-//                        end
-//                    endcase
                     shape_d_colour <= PURPLE;
                 end
             end
@@ -534,7 +670,7 @@ module ui(
             end
             
             /////////// Button pressed ///////////
-            if (btn_ready  && justStartGameFlag == 0 && (btnC || btnD || btnL || btnR || btnU)) begin
+            if (btn_ready && justStartGameFlag == 0 && (btnC || btnD || btnL || btnR || btnU)) begin
                 btn_ready = 0;
     
                 // TODO: If button is pressed and button matches the "shape" of the lowest 
@@ -587,10 +723,10 @@ module ui(
     end
     
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// Main Game /////////////////////////////////////////////////
+    //////////////////////////////////// Game Speed //////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Display Score
-    display_score score_display (.clk(clk), .score(score), .an(an), .seg(seg));
+    display_score score_display (.clk(clk), .score(score), .highscore(highscore), .an(an), .seg(seg));
 
     // create new shape every 3 sec
     // For every shape: y_pos_a, random_x, shape_a (visibility), arrow_a, a_pressed
@@ -603,6 +739,7 @@ module ui(
     reg [3:0] speed_store = 2; // 0: 90px/s 1: 45 px/s 2: 30px/sec 5: 15px/sec
     reg [3:0] speed_counter = 0;
     reg [12:0] y_pos_a, y_pos_b, y_pos_c, y_pos_d;
+    reg [12:0] y_pos_centre = 0, y_pos_down = 0, y_pos_left = 0, y_pos_right = 0, y_pos_up = 0;
     always @(posedge clk_90pix) begin
         // setting speed
         if (~sw[14]) begin
@@ -624,23 +761,21 @@ module ui(
             y_pos_a <= (y_pos_a < 63) ? y_pos_a + 1 : 0;
             if (y_pos_a == 62) begin
                 a_ready_flag = 1;
-                shape_ready_flag = 1;
-//                shapeA_ready_flag = 1;
+                shapeA_ready_flag = 1;
             end
             else begin
                 a_ready_flag = 0;
-                shape_ready_flag = 0;
-//                shapeA_ready_flag = 0;
+                shapeA_ready_flag = 0;
             end
             
             y_pos_b <= (y_pos_b < 63) ? y_pos_b + 1 : 0;
             if (y_pos_b == 62) begin
                 b_ready_flag = 1;
-//                shapeB_ready_flag = 1;
+                shapeB_ready_flag = 1;
             end
             else begin
                 b_ready_flag = 0;
-//                shapeB_ready_flag = 0;
+                shapeB_ready_flag = 0;
             end
 
             y_pos_c <= (y_pos_c < 63) ? y_pos_c + 1 : 0;
@@ -667,21 +802,27 @@ module ui(
         
     end
     
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////// Game Randomness ///////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     // generate random every 3s
     wire [6:0] random_x, random_x_a, random_x_b, random_x_c, random_x_d;
-    wire [3:0] random_shape;
-    wire [3:0] ones, tens;
+    reg [6:0] random_x_centre, random_x_down, random_x_left, random_x_right, random_x_up;
+    reg [3:0] random_shapeA, random_shapeB;// random_shapeC random_shapeD
+    wire [3:0] random_gen_shapeA, random_gen_shapeB;// random_shapeC random_shapeD
+    wire [3:0] ones, tens, random_shape;
     wire a_ready_for_new, b_ready_for_new, c_ready_for_new, d_ready_for_new, shape_ready_for_new; // everytime, shape goes to top, get new x
-//    wire shapeA_ready_for_new, shapeB_ready_for_new, shapeC_ready_for_new, shapeD_ready_for_new;   
+    wire shapeA_ready_for_new, shapeB_ready_for_new, shapeC_ready_for_new, shapeD_ready_for_new;   
     reg a_ready_flag = 0, b_ready_flag = 0, c_ready_flag = 0, d_ready_flag = 0, shape_ready_flag = 0;
-//    reg shapeA_ready_flag = 0, shapeB_ready_flag = 0, shapeC_ready_flag = 0, shapeD_ready_flag = 0;
+    reg shapeA_ready_flag = 0, shapeB_ready_flag = 0, shapeC_ready_flag = 0, shapeD_ready_flag = 0;
     assign a_ready_for_new = a_ready_flag;
     assign b_ready_for_new = b_ready_flag;
     assign c_ready_for_new = c_ready_flag;
     assign d_ready_for_new = d_ready_flag;
     assign shape_ready_for_new = shape_ready_flag;
-//    assign shapeA_ready_for_new = shapeA_ready_flag;
-//    assign shapeB_ready_for_new = shapeB_ready_flag;
+    assign shapeA_ready_for_new = shapeA_ready_flag;
+    assign shapeB_ready_for_new = shapeB_ready_flag;
+    
 //    assign shapeC_ready_for_new = shapeC_ready_flag;
 //    assign shapeD_ready_for_new = shapeD_ready_flag;
     
@@ -694,18 +835,19 @@ module ui(
     random_x_generator3 random_gen3(.clk(clk), .get_new(c_ready_for_new), .random_x(random_x_c));
     random_x_generator4 random_gen4(.clk(clk), .get_new(d_ready_for_new), .random_x(random_x_d));
     random_shape_generator random_gen_shape(.clk(clk), .get_new(shape_ready_for_new), .random_shape(random_shape));
-//    random_shape_generator random_gen_shape1(.clk(clk), .get_new(shapeA_ready_for_new), .random_shape(random_shapeA));
-//    random_shape_generator random_gen_shape2(.clk(clk), .get_new(shapeB_ready_for_new), .random_shape(random_shapeB));
+    random_shape_generator random_gen_shape1(.clk(clk), .get_new(shapeA_ready_for_new), .random_shape(random_gen_shapeA));
+    random_shape_generator random_gen_shape2(.clk(clk), .get_new(shapeB_ready_for_new), .random_shape(random_gen_shapeB));
 //    random_shape_generator random_gen_shape3(.clk(clk), .get_new(shapeC_ready_for_new), .random_shape(random_shapeC));
 //    random_shape_generator random_gen_shape4(.clk(clk), .get_new(shapeD_ready_for_new), .random_shape(random_shapeD));
     
-    ////////////////////////
-    /// Design & Display ///
-    ////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    /////////////////////////// Gane Display ///////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     reg moving_shape_a, moving_shape_b, moving_shape_c, moving_shape_d;
     wire moving_square_a, moving_square_b, moving_square_c, moving_square_d, line;    
     wire plus_zero, plus_one, plus_two, plus_three;
     wire c_arrow, d_arrow, l_arrow, r_arrow, u_arrow;
+    wire c_arrowA, d_arrowA, l_arrowA, r_arrowA, u_arrowA;
     reg [7:0] line_y = 50;
     assign moving_square_a = (x >= random_x_a && x < random_x_a + 5 ) && (y >= y_pos_a && y < y_pos_a + 5);
     assign moving_square_b = (x >= random_x_b && x < random_x_b + 5 ) && (y >= y_pos_b && y < y_pos_b + 5);
@@ -740,39 +882,33 @@ module ui(
         || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
         || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
         || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-//    assign u_arrow =  ((x == random_x_a + 8) && (y == y_pos_a + 4))
-//        || ((x >=  random_x_a + 7) && (x < random_x_a + 10) && (y == y_pos_a + 5))
-//        || ((x >= random_x_a + 6) && (x < random_x_a + 11) && (y == y_pos_a + 6))
-//        || ((x >= random_x_a + 5) && (x < random_x_a + 12) && (y == y_pos_a + 7))
-//        || ((x >= random_x_a + 4) && (x < random_x_a + 13) && (y == y_pos_a + 8))
-//        || ((y >= y_pos_a + 9) && (y < y_pos_a + 14) && (x == random_x_a + 8));
 
     // you will not see 2 of the same arrows on the screen at the same time since the shapes are shared
-    assign u_arrow= ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
+    assign u_arrowA = ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
                         ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y >= y_pos_a + 1) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a + 2) && (x < random_x_a + 7) && (y >= y_pos_a + 2) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a + 1) && (x < random_x_a + 8) && (y >= y_pos_a + 3) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a) && (x < random_x_a + 9) && (y >= y_pos_a + 4) && (y < y_pos_a + 5)) ||
                         ((y >= y_pos_a + 5) && (y < y_pos_a + 10) && (x == random_x_a + 4 ));
-    assign l_arrow = ((y == y_pos_a + 4) && (x >= random_x_a) && (x < random_x_a + 5)) || 
+    assign l_arrowA = ((y == y_pos_a + 4) && (x >= random_x_a) && (x < random_x_a + 5)) || 
                         ((y >= y_pos_a + 3) && (y < y_pos_a + 6) && (x >= random_x_a + 1) && (x < random_x_a + 5)) ||
                         ((y >= y_pos_a + 2) && (y < y_pos_a + 7) && (x >= random_x_a + 2) && (x < random_x_a + 5)) ||
                         ((y >= y_pos_a + 1) && (y < y_pos_a + 8) && (x >= random_x_a + 3) && (x < random_x_a + 5)) ||
                         ((y >= y_pos_a) && (y < y_pos_a + 9) && (x >= random_x_a + 4) && (x < random_x_a + 5)) ||
                         ((x >= random_x_a + 5) && (x < random_x_a + 10) && (y == y_pos_a + 4 ));
-    assign d_arrow = ((x == random_x_a + 4) && (y <= y_pos_a) && (y > y_pos_a - 5)) || 
+    assign d_arrowA = ((x == random_x_a + 4) && (y <= y_pos_a) && (y > y_pos_a - 5)) || 
                         ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y <= y_pos_a - 1) && (y > y_pos_a - 5)) ||
                         ((x >= random_x_a + 2) && (x < random_x_a + 7) && (y <= y_pos_a - 2) && (y > y_pos_a - 5)) ||
                         ((x >= random_x_a + 1) && (x < random_x_a + 8) && (y <= y_pos_a - 3) && (y > y_pos_a - 5)) ||
                         ((x >= random_x_a) && (x < random_x_a + 9) && (y <= y_pos_a - 4) && (y > y_pos_a - 5)) ||
                         ((y <= y_pos_a - 5) && (y > y_pos_a - 10) && (x == random_x_a + 4 ));
-    assign r_arrow = ((y == y_pos_a + 4) && (x <= random_x_a) && (x > random_x_a - 5)) || 
+    assign r_arrowA = ((y == y_pos_a + 4) && (x <= random_x_a) && (x > random_x_a - 5)) || 
                         ((y >= y_pos_a + 3) && (y < y_pos_a + 6) && (x <= random_x_a - 1) && (x > random_x_a - 5)) ||
                         ((y >= y_pos_a + 2) && (y < y_pos_a + 7) && (x <= random_x_a - 2) && (x > random_x_a - 5)) ||
                         ((y >= y_pos_a + 1) && (y < y_pos_a + 8) && (x <= random_x_a - 3) && (x > random_x_a - 5)) ||
                         ((y >= y_pos_a) && (y < y_pos_a + 9) && (x <= random_x_a - 4) && (x > random_x_a - 5)) ||
                         ((x <= random_x_a - 5) && (x > random_x_a - 10) && (y == y_pos_a + 4 ));
-    assign c_arrow = ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y >= y_pos_a + 3) && (y < y_pos_a + 6)) ||
+    assign c_arrowA = ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y >= y_pos_a + 3) && (y < y_pos_a + 6)) ||
                         ((x == random_x_a + 5) && (y == y_pos_a + 3)) || ((x == random_x_a + 6) && (y == y_pos_a + 3)) || ((x >= random_x_a + 5) && (x < random_x_a + 8) && (y == y_pos_a + 2)) ||
                         ((x >= random_x_a + 6) && (x < random_x_a + 9) && (y == y_pos_a + 1)) || ((x >= random_x_a +7) && (x < random_x_a + 9) && (y == y_pos_a)) ||
                         ((x == random_x_a + 2) && (y == y_pos_a + 3)) || ((x >= random_x_a + 1) && (x < random_x_a + 4) && (y == y_pos_a + 2)) ||
@@ -781,6 +917,109 @@ module ui(
                         ((x >= random_x_a + 6) && (x < random_x_a + 9) && (y == y_pos_a + 7)) || ((x >= random_x_a +7) && (x < random_x_a + 9) && (y == y_pos_a + 8)) ||
                         ((x == random_x_a + 2) && (y == y_pos_a + 5)) || ((x >= random_x_a + 1) && (x < random_x_a + 4) && (y == y_pos_a + 6)) ||
                         ((x >= random_x_a) && (x < random_x_a + 3) && (y == y_pos_a + 7)) || ((x >= random_x_a) && (x < random_x_a + 2) && (y == y_pos_a + 8));
+                        
+    /*
+    assign u_arrowB = ((x == random_x_b + 4) && (y >= y_pos_b) && (y < y_pos_b + 5)) || 
+                        ((x >= random_x_b + 3) && (x < random_x_b + 6) && (y >= y_pos_b + 1) && (y < y_pos_b + 5)) ||
+                        ((x >= random_x_b + 2) && (x < random_x_b + 7) && (y >= y_pos_b + 2) && (y < y_pos_b + 5)) ||
+                        ((x >= random_x_b + 1) && (x < random_x_b + 8) && (y >= y_pos_b + 3) && (y < y_pos_b + 5)) ||
+                        ((x >= random_x_b) && (x < random_x_b + 9) && (y >= y_pos_b + 4) && (y < y_pos_b + 5)) ||
+                        ((y >= y_pos_b + 5) && (y < y_pos_b + 10) && (x == random_x_b + 4 ));
+    assign l_arrowB = ((y == y_pos_b + 4) && (x >= random_x_b) && (x < random_x_b + 5)) || 
+                        ((y >= y_pos_b + 3) && (y < y_pos_b + 6) && (x >= random_x_b + 1) && (x < random_x_b + 5)) ||
+                        ((y >= y_pos_b + 2) && (y < y_pos_b + 7) && (x >= random_x_b + 2) && (x < random_x_b + 5)) ||
+                        ((y >= y_pos_b + 1) && (y < y_pos_b + 8) && (x >= random_x_b + 3) && (x < random_x_b + 5)) ||
+                        ((y >= y_pos_b) && (y < y_pos_b + 9) && (x >= random_x_b + 4) && (x < random_x_b + 5)) ||
+                        ((x >= random_x_b + 5) && (x < random_x_b + 10) && (y == y_pos_b + 4 ));
+    assign d_arrowB = ((x == random_x_b + 4) && (y <= y_pos_b) && (y > y_pos_b - 5)) || 
+                        ((x >= random_x_b + 3) && (x < random_x_b + 6) && (y <= y_pos_b - 1) && (y > y_pos_b - 5)) ||
+                        ((x >= random_x_b + 2) && (x < random_x_b + 7) && (y <= y_pos_b - 2) && (y > y_pos_b - 5)) ||
+                        ((x >= random_x_b + 1) && (x < random_x_b + 8) && (y <= y_pos_b - 3) && (y > y_pos_b - 5)) ||
+                        ((x >= random_x_b) && (x < random_x_b + 9) && (y <= y_pos_b - 4) && (y > y_pos_b - 5)) ||
+                        ((y <= y_pos_b - 5) && (y > y_pos_b - 10) && (x == random_x_b + 4 ));
+    assign r_arrowB = ((y == y_pos_b + 4) && (x <= random_x_b) && (x > random_x_b - 5)) || 
+                        ((y >= y_pos_b + 3) && (y < y_pos_b + 6) && (x <= random_x_b - 1) && (x > random_x_b - 5)) ||
+                        ((y >= y_pos_b + 2) && (y < y_pos_b + 7) && (x <= random_x_b - 2) && (x > random_x_b - 5)) ||
+                        ((y >= y_pos_b + 1) && (y < y_pos_b + 8) && (x <= random_x_b - 3) && (x > random_x_b - 5)) ||
+                        ((y >= y_pos_b) && (y < y_pos_b + 9) && (x <= random_x_b - 4) && (x > random_x_b - 5)) ||
+                        ((x <= random_x_b - 5) && (x > random_x_b - 10) && (y == y_pos_b + 4 ));
+    assign c_arrowB = ((x >= random_x_b + 3) && (x < random_x_b + 6) && (y >= y_pos_b + 3) && (y < y_pos_b + 6)) ||
+                        ((x == random_x_b + 5) && (y == y_pos_b + 3)) || ((x == random_x_b + 6) && (y == y_pos_b + 3)) || ((x >= random_x_b + 5) && (x < random_x_b + 8) && (y == y_pos_b + 2)) ||
+                        ((x >= random_x_b + 6) && (x < random_x_b + 9) && (y == y_pos_b + 1)) || ((x >= random_x_b +7) && (x < random_x_b + 9) && (y == y_pos_b)) ||
+                        ((x == random_x_b + 2) && (y == y_pos_b + 3)) || ((x >= random_x_b + 1) && (x < random_x_b + 4) && (y == y_pos_b + 2)) ||
+                        ((x >= random_x_b ) && (x < random_x_b + 3) && (y == y_pos_b + 1)) || ((x >= random_x_b) && (x < random_x_b + 2) && (y == y_pos_b)) ||
+                        ((x == random_x_b + 6) && (y == y_pos_b + 5)) || ((x >= random_x_b + 5) && (x < random_x_b + 8) && (y == y_pos_b + 6)) ||
+                        ((x >= random_x_b + 6) && (x < random_x_b + 9) && (y == y_pos_b + 7)) || ((x >= random_x_b +7) && (x < random_x_b + 9) && (y == y_pos_b + 8)) ||
+                        ((x == random_x_b + 2) && (y == y_pos_b + 5)) || ((x >= random_x_b + 1) && (x < random_x_b + 4) && (y == y_pos_b + 6)) ||
+                        ((x >= random_x_b) && (x < random_x_b + 3) && (y == y_pos_b + 7)) || ((x >= random_x_b) && (x < random_x_b + 2) && (y == y_pos_b + 8));
+                        
+    assign u_arrowC = ((x == random_x_c + 4) && (y >= y_pos_c) && (y < y_pos_c + 5)) || 
+                        ((x >= random_x_c + 3) && (x < random_x_c + 6) && (y >= y_pos_c + 1) && (y < y_pos_c + 5)) ||
+                        ((x >= random_x_c + 2) && (x < random_x_c + 7) && (y >= y_pos_c + 2) && (y < y_pos_c + 5)) ||
+                        ((x >= random_x_c + 1) && (x < random_x_c + 8) && (y >= y_pos_c + 3) && (y < y_pos_c + 5)) ||
+                        ((x >= random_x_c) && (x < random_x_c + 9) && (y >= y_pos_c + 4) && (y < y_pos_c + 5)) ||
+                        ((y >= y_pos_c + 5) && (y < y_pos_c + 10) && (x == random_x_c + 4 ));
+    assign l_arrowC = ((y == y_pos_c + 4) && (x >= random_x_c) && (x < random_x_c + 5)) || 
+                        ((y >= y_pos_c + 3) && (y < y_pos_c + 6) && (x >= random_x_c + 1) && (x < random_x_c + 5)) ||
+                        ((y >= y_pos_c + 2) && (y < y_pos_c + 7) && (x >= random_x_c + 2) && (x < random_x_c + 5)) ||
+                        ((y >= y_pos_c + 1) && (y < y_pos_c + 8) && (x >= random_x_c + 3) && (x < random_x_c + 5)) ||
+                        ((y >= y_pos_c) && (y < y_pos_c + 9) && (x >= random_x_c + 4) && (x < random_x_c + 5)) ||
+                        ((x >= random_x_c + 5) && (x < random_x_c + 10) && (y == y_pos_c + 4 ));
+    assign d_arrowC = ((x == random_x_c + 4) && (y <= y_pos_c) && (y > y_pos_c - 5)) || 
+                        ((x >= random_x_c + 3) && (x < random_x_c + 6) && (y <= y_pos_c - 1) && (y > y_pos_c - 5)) ||
+                        ((x >= random_x_c + 2) && (x < random_x_c + 7) && (y <= y_pos_c - 2) && (y > y_pos_c - 5)) ||
+                        ((x >= random_x_c + 1) && (x < random_x_c + 8) && (y <= y_pos_c - 3) && (y > y_pos_c - 5)) ||
+                        ((x >= random_x_c) && (x < random_x_c + 9) && (y <= y_pos_c - 4) && (y > y_pos_c - 5)) ||
+                        ((y <= y_pos_c - 5) && (y > y_pos_c - 10) && (x == random_x_c + 4 ));
+    assign r_arrowC = ((y == y_pos_c + 4) && (x <= random_x_c) && (x > random_x_c - 5)) || 
+                        ((y >= y_pos_c + 3) && (y < y_pos_c + 6) && (x <= random_x_c - 1) && (x > random_x_c - 5)) ||
+                        ((y >= y_pos_c + 2) && (y < y_pos_c + 7) && (x <= random_x_c - 2) && (x > random_x_c - 5)) ||
+                        ((y >= y_pos_c + 1) && (y < y_pos_c + 8) && (x <= random_x_c - 3) && (x > random_x_c - 5)) ||
+                        ((y >= y_pos_c) && (y < y_pos_c + 9) && (x <= random_x_c - 4) && (x > random_x_c - 5)) ||
+                        ((x <= random_x_c - 5) && (x > random_x_c - 10) && (y == y_pos_c + 4 ));
+    assign c_arrowC = ((x >= random_x_c + 3) && (x < random_x_c + 6) && (y >= y_pos_c + 3) && (y < y_pos_c + 6)) ||
+                        ((x == random_x_c + 5) && (y == y_pos_c + 3)) || ((x == random_x_c + 6) && (y == y_pos_c + 3)) || ((x >= random_x_c + 5) && (x < random_x_c + 8) && (y == y_pos_c + 2)) ||
+                        ((x >= random_x_c + 6) && (x < random_x_c + 9) && (y == y_pos_c + 1)) || ((x >= random_x_c +7) && (x < random_x_c + 9) && (y == y_pos_c)) ||
+                        ((x == random_x_c + 2) && (y == y_pos_c + 3)) || ((x >= random_x_c + 1) && (x < random_x_c + 4) && (y == y_pos_c + 2)) ||
+                        ((x >= random_x_c ) && (x < random_x_c + 3) && (y == y_pos_c + 1)) || ((x >= random_x_c) && (x < random_x_c + 2) && (y == y_pos_c)) ||
+                        ((x == random_x_c + 6) && (y == y_pos_c + 5)) || ((x >= random_x_c + 5) && (x < random_x_c + 8) && (y == y_pos_c + 6)) ||
+                        ((x >= random_x_c + 6) && (x < random_x_c + 9) && (y == y_pos_c + 7)) || ((x >= random_x_c +7) && (x < random_x_c + 9) && (y == y_pos_c + 8)) ||
+                        ((x == random_x_c + 2) && (y == y_pos_c + 5)) || ((x >= random_x_c + 1) && (x < random_x_c + 4) && (y == y_pos_c + 6)) ||
+                        ((x >= random_x_c) && (x < random_x_c + 3) && (y == y_pos_c + 7)) || ((x >= random_x_c) && (x < random_x_c + 2) && (y == y_pos_c + 8));
+    assign u_arrowD = ((x == random_x_d + 4) && (y >= y_pos_d) && (y < y_pos_d + 5)) || 
+                                ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 1) && (y < y_pos_d + 5)) ||
+                                ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y >= y_pos_d + 2) && (y < y_pos_d + 5)) ||
+                                ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y >= y_pos_d + 3) && (y < y_pos_d + 5)) ||
+                                ((x >= random_x_d) && (x < random_x_d + 9) && (y >= y_pos_d + 4) && (y < y_pos_d + 5)) ||
+                                ((y >= y_pos_d + 5) && (y < y_pos_d + 10) && (x == random_x_d + 4 ));
+            assign l_arrowD = ((y == y_pos_d + 4) && (x >= random_x_d) && (x < random_x_d + 5)) || 
+                                ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x >= random_x_d + 1) && (x < random_x_d + 5)) ||
+                                ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x >= random_x_d + 2) && (x < random_x_d + 5)) ||
+                                ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x >= random_x_d + 3) && (x < random_x_d + 5)) ||
+                                ((y >= y_pos_d) && (y < y_pos_d + 9) && (x >= random_x_d + 4) && (x < random_x_d + 5)) ||
+                                ((x >= random_x_d + 5) && (x < random_x_d + 10) && (y == y_pos_d + 4 ));
+            assign d_arrowD = ((x == random_x_d + 4) && (y <= y_pos_d) && (y > y_pos_d - 5)) || 
+                                ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y <= y_pos_d - 1) && (y > y_pos_d - 5)) ||
+                                ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y <= y_pos_d - 2) && (y > y_pos_d - 5)) ||
+                                ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y <= y_pos_d - 3) && (y > y_pos_d - 5)) ||
+                                ((x >= random_x_d) && (x < random_x_d + 9) && (y <= y_pos_d - 4) && (y > y_pos_d - 5)) ||
+                                ((y <= y_pos_d - 5) && (y > y_pos_d - 10) && (x == random_x_d + 4 ));
+            assign r_arrowD = ((y == y_pos_d + 4) && (x <= random_x_d) && (x > random_x_d - 5)) || 
+                                ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x <= random_x_d - 1) && (x > random_x_d - 5)) ||
+                                ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x <= random_x_d - 2) && (x > random_x_d - 5)) ||
+                                ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x <= random_x_d - 3) && (x > random_x_d - 5)) ||
+                                ((y >= y_pos_d) && (y < y_pos_d + 9) && (x <= random_x_d - 4) && (x > random_x_d - 5)) ||
+                                ((x <= random_x_d - 5) && (x > random_x_d - 10) && (y == y_pos_d + 4 ));
+            assign c_arrowD = ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 3) && (y < y_pos_d + 6)) ||
+                                ((x == random_x_d + 5) && (y == y_pos_d + 3)) || ((x == random_x_d + 6) && (y == y_pos_d + 3)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 2)) ||
+                                ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 1)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d)) ||
+                                ((x == random_x_d + 2) && (y == y_pos_d + 3)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 2)) ||
+                                ((x >= random_x_d ) && (x < random_x_d + 3) && (y == y_pos_d + 1)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d)) ||
+                                ((x == random_x_d + 6) && (y == y_pos_d + 5)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 6)) ||
+                                ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 7)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d + 8)) ||
+                                ((x == random_x_d + 2) && (y == y_pos_d + 5)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 6)) ||
+                                ((x >= random_x_d) && (x < random_x_d + 3) && (y == y_pos_d + 7)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d + 8));
+    */                  
                         
     /*
     assign u_arrow= ((x == random_x_up + 4) && (y >= y_pos_up) && (y < y_pos_up + 5)) || 
@@ -817,7 +1056,6 @@ module ui(
                         ((x == random_x_centre + 2) && (y == y_pos_centre + 5)) || ((x >= random_x_centre + 1) && (x < random_x_centre + 4) && (y == y_pos_centre + 6)) ||
                         ((x >= random_x_centre) && (x < random_x_centre + 3) && (y == y_pos_centre + 7)) || ((x >= random_x_centre) && (x < random_x_centre + 2) && (y == y_pos_centre + 8));
     */
-    
     assign zero = (((x == 91) && (y >= 2) && (y < 10))
                   || ((x == 92) && (y >= 2) && (y < 10))
                   || ((x == 94) && (y >= 2) && (y < 10))
@@ -944,12 +1182,15 @@ module ui(
                        || ((x >= 91) && (x < 96) && (y == 8))
                        || ((x >= 91) && (x < 96) && (y == 9)));
 
-        
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////// OLED Display ////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////    
     always @(posedge clk) begin
         if (line) game_pixel_data <= BLUE;
         else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
 //        else if (u_arrow && shape_a) game_pixel_data <= shape_a_colour;
         else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
+//        else if (moving_shape_b && shape_b) game_pixel_data <= shape_b_colour;
         else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
         else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
 //        else if (moving_shape_a==c_arrow) && shape_a) game_pixel_data <= CENTRE_ARROW_COLOUR;
