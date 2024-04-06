@@ -44,8 +44,8 @@ module random_x_generator1(
             // Scale the output to be within 0-80
             // This simple scaling works by taking the upper 7 bits, which gives a range of 0-127
             // Then, if the number is above 80s, we subtract 80 until it's within the range
-            if (lfsr_reg[7:1] > 80) begin
-                random_x <= lfsr_reg[7:1] - 80; // Adjust if the value is above 80
+            if (lfsr_reg[7:1] > 75) begin
+                random_x <= lfsr_reg[7:1] - 75; // Adjust if the value is above 80
             end else begin
                 random_x <= lfsr_reg[7:1]; // Directly use the value if it's 80 or below
             end

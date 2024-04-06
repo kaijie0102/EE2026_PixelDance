@@ -256,10 +256,6 @@ module ui(
                 end
             end
             4'b0111: begin // Main Game
-//                oled_data = game_pixel_data;
-//                if (btnR) begin
-//                  interface_state <= 4'b1000; // Transition to Next State
-//                end
                 oled_data = game_pixel_data;
                 if (finishGameFlag && ~highscoreBeatenFlag) begin
                     interface_state <= 4'b1000; // Transition to Try Again State
@@ -269,10 +265,6 @@ module ui(
                 end
             end
             4'b1000: begin // Try Again Interface
-//                oled_data = tryAgain_pixel_data;
-//                if (btnC) begin
-//                  interface_state <= 4'b1001; // Transition to Next State
-//                end
                 oled_data = tryAgain_pixel_data;
                 if (btnC) begin
                   finishGameFlag <= 0;
@@ -281,7 +273,6 @@ module ui(
                 end
             end
             4'b1001: begin // Add your logic for the new interface state here
-//                oled_data = beatHigh_pixel_data;
                 oled_data = beatHigh_pixel_data;
                 if (btnC) begin
                     finishGameFlag <= 0;
@@ -307,51 +298,39 @@ module ui(
             
             justStartGameFlag = (finishGameCounter >= 50_000_000) ? 0 : 1;
             
-            random_shapeA = random_gen_shapeA;
             // generating random_shapes for shape A. {0: centre, 1: down, 2: left, 3: right, 4: up}
+            random_shapeA = random_gen_shapeA;
             if (shape_a) begin
                 case(random_shapeA) 
                     4'b0000: begin
                         correct_buttonA <= 0;
                         moving_shape_a <= c_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= CENTRE_ARROW_COLOUR;
-//                        random_x_centre <= random_x_a;
-//                        y_pos_centre <= y_pos_a;
                     end
                     4'b0001: begin
                         correct_buttonA <= 1;
                         moving_shape_a <= d_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= DOWN_ARROW_COLOUR;
-//                        random_x_down <= random_x_a;
-//                        y_pos_down <= y_pos_a;
                     end
                     4'b0010: begin
                         correct_buttonA <= 2;
                         moving_shape_a <= l_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= LEFT_ARROW_COLOUR;
-//                        random_x_left <= random_x_a;
-//                        y_pos_left <= y_pos_a;
                      end
                     4'b0011: begin
                         correct_buttonA <= 3;
                         moving_shape_a <= r_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= RIGHT_ARROW_COLOUR;
-//                        random_x_right <= random_x_a;
-//                        y_pos_right <= y_pos_a;
                      end
                     4'b0100: begin
                         correct_buttonA <= 4;
                         moving_shape_a <= u_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
-//                        random_x_up <= random_x_a;
-//                        y_pos_up <= y_pos_a;
                     end
                     default: begin
                         correct_buttonA <= 4;
                         moving_shape_a <= u_arrowA;
                         if (y_pos_a == 0) shape_a_colour <= UP_ARROW_COLOUR;
-//                        random_x_up <= random_x_a;
-//                        y_pos_up <= y_pos_a;
                     end
                 endcase
             end
@@ -404,59 +383,78 @@ module ui(
                     end
                 endcase
             end
-            /*
+            
             random_shapeC = random_gen_shapeC;
-            // generating random_shapes for shape A. {0: centre, 1: down, 2: left, 3: right, 4: up}
             if (shape_c) begin
                 case(random_shapeC) 
                     4'b0000: begin
+                        correct_buttonC <= 0;
                         moving_shape_c <= c_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= CENTRE_ARROW_COLOUR;
-                        random_x_centre <= random_x_c;
-                        y_pos_centre <= y_pos_c;
-            //                        correct_buttonC <= 0;
                     end
                     4'b0001: begin
-            //                        correct_buttonC <= 1;
+                        correct_buttonC <= 1;
                         moving_shape_c <= d_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= DOWN_ARROW_COLOUR;
-                        random_x_down <= random_x_c;
-                        y_pos_down <= y_pos_c;
                     end
                     4'b0010: begin
-            //                        correct_buttonC <= 2;
+                        correct_buttonC <= 2;
                         moving_shape_c <= l_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= LEFT_ARROW_COLOUR;
-                        random_x_left <= random_x_c;
-                        y_pos_left <= y_pos_c;
                         end
                     4'b0011: begin
-            //                        correct_buttonC <= 3;
+                        correct_buttonC <= 3;
                         moving_shape_c <= r_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= RIGHT_ARROW_COLOUR;
-                        random_x_right <= random_x_c;
-                        y_pos_right <= y_pos_c;
                         end
                     4'b0100: begin
-            //                        correct_buttonC <= 4;
+                        correct_buttonC <= 4;
                         moving_shape_c <= u_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
-                        random_x_up <= random_x_c;
-                        y_pos_up <= y_pos_c;
                     end
                     default: begin
-            //                        correct_buttonC <= 4;
+                        correct_buttonC <= 4;
                         moving_shape_c <= u_arrowC;
                         if (y_pos_c == 0) shape_c_colour <= UP_ARROW_COLOUR;
-                        random_x_up <= random_x_c;
-                        y_pos_up <= y_pos_c;
                     end
                 endcase
             end
-            */
-            /*
             
-            */
+            random_shapeD = random_gen_shapeD;
+            if (shape_d) begin
+                case(random_shapeD) 
+                    4'b0000: begin
+                        correct_buttonD <= 0;
+                        moving_shape_d <= c_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= CENTRE_ARROW_COLOUR;
+                    end
+                    4'b0001: begin
+                        correct_buttonD <= 1;
+                        moving_shape_d <= d_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= DOWN_ARROW_COLOUR;
+                    end
+                    4'b0010: begin
+                        correct_buttonD <= 2;
+                        moving_shape_d <= l_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= LEFT_ARROW_COLOUR;
+                        end
+                    4'b0011: begin
+                        correct_buttonD <= 3;
+                        moving_shape_d <= r_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= RIGHT_ARROW_COLOUR;
+                        end
+                    4'b0100: begin
+                        correct_buttonD <= 4;
+                        moving_shape_d <= u_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= UP_ARROW_COLOUR;
+                    end
+                    default: begin
+                        correct_buttonD <= 4;
+                        moving_shape_d <= u_arrowD;
+                        if (y_pos_d == 0) shape_d_colour <= UP_ARROW_COLOUR;
+                    end
+                endcase
+            end
             
         
             // speed of "release" of shapes from the top into the screen
@@ -472,11 +470,11 @@ module ui(
                 end
                 else if (~shape_c) begin
                     shape_c <= 1;
-                    shape_c_colour <= GREEN;
+//                    shape_c_colour <= GREEN;
                 end
                 else if (~shape_d) begin
                     shape_d <= 1;
-                    shape_d_colour <= PURPLE;
+//                    shape_d_colour <= PURPLE;
                 end
             end
 
@@ -492,7 +490,6 @@ module ui(
                 if (y_pos_a > 62) shape_a = 0; // deactivate upon hitting bottom
                 if (shape_a && button_pressed) begin
                     shape_a_colour <= BLACK;
-                    correct_button = 0;
                 end   
             end
             
@@ -500,23 +497,20 @@ module ui(
                 if (y_pos_b > 62) shape_b = 0; // deactivate upon hitting bottom
                 if (shape_b && button_pressed) begin
                     shape_b_colour <= BLACK;
-                    correct_button = 0;
                 end   
             end  
             
-            if (y_pos_c > 62 || (shape_c && correct_button && y_lowest == y_pos_c)) begin
+            if (y_pos_c > 62 || (shape_c && button_pressed && y_lowest == y_pos_c)) begin
                 if (y_pos_c > 62) shape_c = 0; // deactivate upon hitting bottom
-                if (shape_c && correct_button) begin
+                if (shape_c && button_pressed) begin
                     shape_c_colour <= BLACK;
-                    correct_button = 0;
                 end   
             end
             
-            if (y_pos_d > 62 || (shape_d && correct_button && y_lowest == y_pos_d)) begin
+            if (y_pos_d > 62 || (shape_d && button_pressed && y_lowest == y_pos_d)) begin
                 if (y_pos_d > 62) shape_d = 0; // deactivate upon hitting bottom
-                if (shape_d && correct_button) begin
+                if (shape_d && button_pressed) begin
                     shape_d_colour <= BLACK;
-                    correct_button = 0;
                 end   
             end    
             
@@ -525,37 +519,45 @@ module ui(
                 y_lowest = y_pos_a;
                 x_lowest = random_x_a;
                 
-//                if (shape_b && (shape_a_colour == BLACK)) begin 
-//                    y_lowest = y_pos_b;
-//                    x_lowest = random_x_b;
-//                end
-//                else begin
-//                    y_lowest = 0;
-//                    x_lowest = 0;                     
-//                end
-//                shape_lowest = moving_shape_a;
+                // pass on lowest
+                if (shape_b && (shape_a_colour == BLACK)) begin 
+                    y_lowest = y_pos_b;
+                    x_lowest = random_x_b;
+                end
+                else begin
+                    y_lowest = 0;
+                    x_lowest = 0;                     
+                end
             end
             else if ((y_pos_b > y_pos_a && y_pos_b > y_pos_c && y_pos_b > y_pos_d) && (y_pos_b < line_y + 3) && ~(shape_a_colour == BLACK)) begin
                 y_lowest = y_pos_b;
                 x_lowest = random_x_b;
-//                if (shape_b_colour == BLACK) begin // if b is black, pass on the lowest
-//                    if (shape_c) begin 
-//                        y_lowest = y_pos_c;
-//                        x_lowest = random_x_c;
-//                    end
-//                    else if (shape_a) begin 
-//                        y_lowest = y_pos_a;
-//                        x_lowest = random_x_a;
-//                    end
-//                end 
+                if (shape_b_colour == BLACK) begin // if b is black, pass on the lowest
+                    if (shape_c) begin 
+                        y_lowest = y_pos_c;
+                        x_lowest = random_x_c;
+                    end
+                    else if (shape_a) begin 
+                        y_lowest = y_pos_a;
+                        x_lowest = random_x_a;
+                    end
+                end 
             end
             else if ((y_pos_c > y_pos_a && y_pos_c > y_pos_b && y_pos_c > y_pos_d) && (y_pos_c < line_y + 3)  && ~(shape_a_colour == BLACK)) begin
                  y_lowest = y_pos_c;
                  x_lowest = random_x_c;
+                 if (shape_d) begin 
+                     y_lowest = y_pos_d;
+                     x_lowest = random_x_d;
+                 end
             end
             else if ((y_pos_d > y_pos_a && y_pos_d > y_pos_b && y_pos_d > y_pos_c) && (y_pos_d < line_y + 3) && ~(shape_a_colour == BLACK)) begin
                  y_lowest = y_pos_d;
                  x_lowest = random_x_d;
+                 if (shape_a) begin 
+                      y_lowest = y_pos_a;
+                      x_lowest = random_x_a;
+                 end
             end
     
            ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -588,7 +590,7 @@ module ui(
                     || (correct_buttonB == 4 && btnU))) begin
                     correct_button = 1;
                 end
-                /*
+                
                 if (y_lowest == y_pos_c && ((correct_buttonC == 0 && btnC) || (correct_buttonC == 1 && btnD) 
                     || (correct_buttonC == 2 && btnL) || (correct_buttonC == 3 && btnR) 
                     || (correct_buttonC == 4 && btnU))) begin
@@ -600,7 +602,6 @@ module ui(
                     || (correct_buttonD == 4 && btnU))) begin
                     correct_button = 1;
                 end
-                */
                 
                 
                 // accuracy value
@@ -738,8 +739,8 @@ module ui(
     // generate random every 3s
     wire [6:0] random_x, random_x_a, random_x_b, random_x_c, random_x_d;
     reg [6:0] random_x_centre, random_x_down, random_x_left, random_x_right, random_x_up;
-    reg [3:0] random_shapeA, random_shapeB;// random_shapeC random_shapeD
-    wire [3:0] random_gen_shapeA, random_gen_shapeB;// random_shapeC random_shapeD
+    reg [3:0] random_shapeA, random_shapeB, random_shapeC, random_shapeD;
+    wire [3:0] random_gen_shapeA, random_gen_shapeB, random_shapeC, random_shapeD;
     wire [3:0] ones, tens, random_shape;
     wire a_ready_for_new, b_ready_for_new, c_ready_for_new, d_ready_for_new, shape_ready_for_new; // everytime, shape goes to top, get new x
     wire shapeA_ready_for_new, shapeB_ready_for_new, shapeC_ready_for_new, shapeD_ready_for_new;   
@@ -752,13 +753,9 @@ module ui(
     assign shape_ready_for_new = shape_ready_flag;
     assign shapeA_ready_for_new = shapeA_ready_flag;
     assign shapeB_ready_for_new = shapeB_ready_flag;
+    assign shapeC_ready_for_new = shapeC_ready_flag;
+    assign shapeD_ready_for_new = shapeD_ready_flag;
     
-//    assign shapeC_ready_for_new = shapeC_ready_flag;
-//    assign shapeD_ready_for_new = shapeD_ready_flag;
-    
-//    random_x_generator2 random_gen2(.clk(clk), .get_new(a_ready_for_new), .random_x(random_x_a));
-//    random_x_generator random_x_value(.clk(clk), .random_max_count(500_000_000), .random_x(random_x), .ones(ones), .tens(tens));
-//    assign random_x_a = random_x;
 
     random_x_generator1 random_gen1(.clk(clk), .get_new(a_ready_for_new), .random_x(random_x_a));
     random_x_generator2 random_gen2(.clk(clk), .get_new(b_ready_for_new), .random_x(random_x_b));
@@ -767,8 +764,8 @@ module ui(
     random_shape_generator random_gen_shape(.clk(clk), .get_new(shape_ready_for_new), .random_shape(random_shape));
     random_shape_generator random_gen_shape1(.clk(clk), .get_new(shapeA_ready_for_new), .random_shape(random_gen_shapeA));
     random_shape_generator random_gen_shape2(.clk(clk), .get_new(shapeB_ready_for_new), .random_shape(random_gen_shapeB));
-//    random_shape_generator random_gen_shape3(.clk(clk), .get_new(shapeC_ready_for_new), .random_shape(random_shapeC));
-//    random_shape_generator random_gen_shape4(.clk(clk), .get_new(shapeD_ready_for_new), .random_shape(random_shapeD));
+    random_shape_generator random_gen_shape3(.clk(clk), .get_new(shapeC_ready_for_new), .random_shape(random_gen_shapeC));
+    random_shape_generator random_gen_shape4(.clk(clk), .get_new(shapeD_ready_for_new), .random_shape(random_gen_shapeD));
     
     ////////////////////////////////////////////////////////////////////////
     /////////////////////////// Gane Display ///////////////////////////////
@@ -898,7 +895,7 @@ module ui(
                         ((x >= random_x_b + 6) && (x < random_x_b + 9) && (y == y_pos_b + 7)) || ((x >= random_x_b +7) && (x < random_x_b + 9) && (y == y_pos_b + 8)) ||
                         ((x == random_x_b + 2) && (y == y_pos_b + 5)) || ((x >= random_x_b + 1) && (x < random_x_b + 4) && (y == y_pos_b + 6)) ||
                         ((x >= random_x_b) && (x < random_x_b + 3) && (y == y_pos_b + 7)) || ((x >= random_x_b) && (x < random_x_b + 2) && (y == y_pos_b + 8));
-           /*             
+
     assign u_arrowC = ((x == random_x_c + 4) && (y >= y_pos_c) && (y < y_pos_c + 5)) || 
                         ((x >= random_x_c + 3) && (x < random_x_c + 6) && (y >= y_pos_c + 1) && (y < y_pos_c + 5)) ||
                         ((x >= random_x_c + 2) && (x < random_x_c + 7) && (y >= y_pos_c + 2) && (y < y_pos_c + 5)) ||
@@ -931,40 +928,40 @@ module ui(
                         ((x >= random_x_c + 6) && (x < random_x_c + 9) && (y == y_pos_c + 7)) || ((x >= random_x_c +7) && (x < random_x_c + 9) && (y == y_pos_c + 8)) ||
                         ((x == random_x_c + 2) && (y == y_pos_c + 5)) || ((x >= random_x_c + 1) && (x < random_x_c + 4) && (y == y_pos_c + 6)) ||
                         ((x >= random_x_c) && (x < random_x_c + 3) && (y == y_pos_c + 7)) || ((x >= random_x_c) && (x < random_x_c + 2) && (y == y_pos_c + 8));
+                        
     assign u_arrowD = ((x == random_x_d + 4) && (y >= y_pos_d) && (y < y_pos_d + 5)) || 
-                                ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 1) && (y < y_pos_d + 5)) ||
-                                ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y >= y_pos_d + 2) && (y < y_pos_d + 5)) ||
-                                ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y >= y_pos_d + 3) && (y < y_pos_d + 5)) ||
-                                ((x >= random_x_d) && (x < random_x_d + 9) && (y >= y_pos_d + 4) && (y < y_pos_d + 5)) ||
-                                ((y >= y_pos_d + 5) && (y < y_pos_d + 10) && (x == random_x_d + 4 ));
-            assign l_arrowD = ((y == y_pos_d + 4) && (x >= random_x_d) && (x < random_x_d + 5)) || 
-                                ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x >= random_x_d + 1) && (x < random_x_d + 5)) ||
-                                ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x >= random_x_d + 2) && (x < random_x_d + 5)) ||
-                                ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x >= random_x_d + 3) && (x < random_x_d + 5)) ||
-                                ((y >= y_pos_d) && (y < y_pos_d + 9) && (x >= random_x_d + 4) && (x < random_x_d + 5)) ||
-                                ((x >= random_x_d + 5) && (x < random_x_d + 10) && (y == y_pos_d + 4 ));
-            assign d_arrowD = ((x == random_x_d + 4) && (y <= y_pos_d) && (y > y_pos_d - 5)) || 
-                                ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y <= y_pos_d - 1) && (y > y_pos_d - 5)) ||
-                                ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y <= y_pos_d - 2) && (y > y_pos_d - 5)) ||
-                                ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y <= y_pos_d - 3) && (y > y_pos_d - 5)) ||
-                                ((x >= random_x_d) && (x < random_x_d + 9) && (y <= y_pos_d - 4) && (y > y_pos_d - 5)) ||
-                                ((y <= y_pos_d - 5) && (y > y_pos_d - 10) && (x == random_x_d + 4 ));
-            assign r_arrowD = ((y == y_pos_d + 4) && (x <= random_x_d) && (x > random_x_d - 5)) || 
-                                ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x <= random_x_d - 1) && (x > random_x_d - 5)) ||
-                                ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x <= random_x_d - 2) && (x > random_x_d - 5)) ||
-                                ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x <= random_x_d - 3) && (x > random_x_d - 5)) ||
-                                ((y >= y_pos_d) && (y < y_pos_d + 9) && (x <= random_x_d - 4) && (x > random_x_d - 5)) ||
-                                ((x <= random_x_d - 5) && (x > random_x_d - 10) && (y == y_pos_d + 4 ));
-            assign c_arrowD = ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 3) && (y < y_pos_d + 6)) ||
-                                ((x == random_x_d + 5) && (y == y_pos_d + 3)) || ((x == random_x_d + 6) && (y == y_pos_d + 3)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 2)) ||
-                                ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 1)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d)) ||
-                                ((x == random_x_d + 2) && (y == y_pos_d + 3)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 2)) ||
-                                ((x >= random_x_d ) && (x < random_x_d + 3) && (y == y_pos_d + 1)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d)) ||
-                                ((x == random_x_d + 6) && (y == y_pos_d + 5)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 6)) ||
-                                ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 7)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d + 8)) ||
-                                ((x == random_x_d + 2) && (y == y_pos_d + 5)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 6)) ||
-                                ((x >= random_x_d) && (x < random_x_d + 3) && (y == y_pos_d + 7)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d + 8));
-    */                  
+                        ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 1) && (y < y_pos_d + 5)) ||
+                        ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y >= y_pos_d + 2) && (y < y_pos_d + 5)) ||
+                        ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y >= y_pos_d + 3) && (y < y_pos_d + 5)) ||
+                        ((x >= random_x_d) && (x < random_x_d + 9) && (y >= y_pos_d + 4) && (y < y_pos_d + 5)) ||
+                        ((y >= y_pos_d + 5) && (y < y_pos_d + 10) && (x == random_x_d + 4 ));
+    assign l_arrowD = ((y == y_pos_d + 4) && (x >= random_x_d) && (x < random_x_d + 5)) || 
+                        ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x >= random_x_d + 1) && (x < random_x_d + 5)) ||
+                        ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x >= random_x_d + 2) && (x < random_x_d + 5)) ||
+                        ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x >= random_x_d + 3) && (x < random_x_d + 5)) ||
+                        ((y >= y_pos_d) && (y < y_pos_d + 9) && (x >= random_x_d + 4) && (x < random_x_d + 5)) ||
+                        ((x >= random_x_d + 5) && (x < random_x_d + 10) && (y == y_pos_d + 4 ));
+    assign d_arrowD = ((x == random_x_d + 4) && (y <= y_pos_d) && (y > y_pos_d - 5)) || 
+                        ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y <= y_pos_d - 1) && (y > y_pos_d - 5)) ||
+                        ((x >= random_x_d + 2) && (x < random_x_d + 7) && (y <= y_pos_d - 2) && (y > y_pos_d - 5)) ||
+                        ((x >= random_x_d + 1) && (x < random_x_d + 8) && (y <= y_pos_d - 3) && (y > y_pos_d - 5)) ||
+                        ((x >= random_x_d) && (x < random_x_d + 9) && (y <= y_pos_d - 4) && (y > y_pos_d - 5)) ||
+                        ((y <= y_pos_d - 5) && (y > y_pos_d - 10) && (x == random_x_d + 4 ));
+    assign r_arrowD = ((y == y_pos_d + 4) && (x <= random_x_d) && (x > random_x_d - 5)) || 
+                        ((y >= y_pos_d + 3) && (y < y_pos_d + 6) && (x <= random_x_d - 1) && (x > random_x_d - 5)) ||
+                        ((y >= y_pos_d + 2) && (y < y_pos_d + 7) && (x <= random_x_d - 2) && (x > random_x_d - 5)) ||
+                        ((y >= y_pos_d + 1) && (y < y_pos_d + 8) && (x <= random_x_d - 3) && (x > random_x_d - 5)) ||
+                        ((y >= y_pos_d) && (y < y_pos_d + 9) && (x <= random_x_d - 4) && (x > random_x_d - 5)) ||
+                        ((x <= random_x_d - 5) && (x > random_x_d - 10) && (y == y_pos_d + 4 ));
+    assign c_arrowD = ((x >= random_x_d + 3) && (x < random_x_d + 6) && (y >= y_pos_d + 3) && (y < y_pos_d + 6)) ||
+                        ((x == random_x_d + 5) && (y == y_pos_d + 3)) || ((x == random_x_d + 6) && (y == y_pos_d + 3)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 2)) ||
+                        ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 1)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d)) ||
+                        ((x == random_x_d + 2) && (y == y_pos_d + 3)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 2)) ||
+                        ((x >= random_x_d ) && (x < random_x_d + 3) && (y == y_pos_d + 1)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d)) ||
+                        ((x == random_x_d + 6) && (y == y_pos_d + 5)) || ((x >= random_x_d + 5) && (x < random_x_d + 8) && (y == y_pos_d + 6)) ||
+                        ((x >= random_x_d + 6) && (x < random_x_d + 9) && (y == y_pos_d + 7)) || ((x >= random_x_d +7) && (x < random_x_d + 9) && (y == y_pos_d + 8)) ||
+                        ((x == random_x_d + 2) && (y == y_pos_d + 5)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 6)) ||
+                        ((x >= random_x_d) && (x < random_x_d + 3) && (y == y_pos_d + 7)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d + 8));
                         
     /*
     assign u_arrow= ((x == random_x_up + 4) && (y >= y_pos_up) && (y < y_pos_up + 5)) || 
@@ -1135,10 +1132,10 @@ module ui(
         else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
 //        else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
         else if (moving_shape_b && shape_b) game_pixel_data <= shape_b_colour;
-        else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
-        else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
-//        else if (moving_shape_c && shape_c) game_pixel_data <= shape_c_colour;
-//        else if (moving_shape_d && shape_d) game_pixel_data <= shape_d_colour;
+//        else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
+//        else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
+        else if (moving_shape_c && shape_c) game_pixel_data <= shape_c_colour;
+        else if (moving_shape_d && shape_d) game_pixel_data <= shape_d_colour;
         
         
         // Points reflection
