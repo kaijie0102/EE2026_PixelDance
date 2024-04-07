@@ -35,9 +35,10 @@ module ui(
     input [12:0] pixel_index,
     input [6:0] random_x_pos,
     input btnC, btnU, btnL, btnR, btnD,
+    input [1:0] difficulty,
     output [6:0] seg,
     output [3:0] an,
-    output reg [15:0] led,
+//    output reg [15:0] led,
     output reg [15:0] oled_data
     );
         
@@ -212,14 +213,12 @@ module ui(
         ////////////////////////////////
         case(interface_state) 
             4'b0000: begin // Welcome page interface
-//                led[0] <= 1;
                 oled_data = welcome_pixel_data;
                 if (btnR) begin
                   interface_state <= 4'b0001; // Transition to Second Interface
                 end
             end
             4'b0001: begin // Second Interface
-//                led[1] <= 1;
                 oled_data = pressC_pixel_data;
                 if (btnC) begin
                   interface_state <= 4'b0010; // Transition to Down Interface
@@ -291,7 +290,7 @@ module ui(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (sw[14]) begin // toggle up and down to restart game
             finishGameFlag = 1;
-            highscoreBeatenFlag = 0;
+//            highscoreBeatenFlag = 0;
         end
         
         if (interface_state == 4'b0111 && finishGameFlag == 0) begin
@@ -451,14 +450,12 @@ module ui(
             end
             
             // speed of "release" of shapes from the top into the screen
-            /*
             if (difficulty == 0) drop_counter_max = 300_000_000;
-            else if (difficulty == 1) drop_counter_max = 100_000_000;
-            else if (difficulty == 2) drop_counter_max = 50_000_000;
-            */
+            else if (difficulty == 1) drop_counter_max = 200_000_000;
+            else if (difficulty == 2) drop_counter_max = 100_000_000;
             
-//            drop_counter <= (drop_counter == drop_counter_max) ? 0 : drop_counter + 1;
-            drop_counter <= (drop_counter == 100_000_000) ? 0 : drop_counter + 1;
+            drop_counter <= (drop_counter == drop_counter_max) ? 0 : drop_counter + 1;
+//            drop_counter <= (drop_counter == 100_000_000) ? 0 : drop_counter + 1;
             if (drop_counter == 0) begin
                 if (~shape_a) begin 
                     shape_a <= 1;
@@ -474,14 +471,6 @@ module ui(
                 end
             end
 
-            // once shape disappears, get it ready for next drop / recycle
-//            if (y_pos_a > 62 || (shape_a && correct_button && y_lowest == y_pos_a)) begin
-//                if (y_pos_a > 62) shape_a = 0; // deactivate upon hitting bottom
-//                if (shape_a && correct_button) begin
-//                    shape_a_colour <= BLACK;
-//                    correct_button = 0;
-//                end   
-//            end
             if (y_pos_a > 62 || (shape_a && button_pressed && y_lowest == y_pos_a)) begin
                 if (y_pos_a > 62) shape_a = 0; // deactivate upon hitting bottom
                 if (shape_a && button_pressed) begin
@@ -623,27 +612,27 @@ module ui(
                 if (correct_button && accuracy <= 3) // +3 (green)
                 begin
                     score =  score + 3;
-                    led = 16'b00000_00000_001000;
+//                    led = 16'b00000_00000_001000;
                     threeFlag = 1;
                     correct_button = 0;
                 end
                 else if (correct_button && accuracy <= 5) // +2 (blue)
                 begin
                     score = score + 2;
-                    led = 16'b00000_00000_000100;
+//                    led = 16'b00000_00000_000100;
                     twoFlag = 1;
                     correct_button = 0;
                 end
                 else if (correct_button && accuracy <= 7) // +1 (yellow)
                 begin
                     score = score + 1;
-                    led = 16'b00000_00000_000010;
+//                    led = 16'b00000_00000_000010;
                     oneFlag = 1;
                     correct_button = 0;
                 end
                 else // +0 (red)
                 begin
-                    led = 16'b00000_00000_000001;
+//                    led = 16'b00000_00000_000001;
                     zeroFlag = 1;
                 end
             end 
@@ -679,34 +668,32 @@ module ui(
     
     
     // Movement code block
-    reg [3:0] speed_store = 2; // 0: 90px/s 1: 45 px/s 2: 30px/sec 5: 15px/sec
+    reg [3:0] speed_store = 3; // 0: 90px/s 1: 45 px/s 2: 30px/sec 5: 15px/sec
     reg [3:0] speed_counter = 0;
     reg [12:0] y_pos_a, y_pos_b, y_pos_c, y_pos_d;
     reg [12:0] y_pos_centre = 0, y_pos_down = 0, y_pos_left = 0, y_pos_right = 0, y_pos_up = 0;
-    reg [1:0] difficulty = 1;
+//    reg [1:0] difficulty;
     always @(posedge clk_90pix) begin
         // setting speed
-        if (~sw[13]) begin
-            speed_store <= 2; // count 1 beats to make frequency 90px/s -> 45px/s 
-        end
-        else if (sw[13]) begin
-            speed_store <= 6; // count 2 beats to make frequency 90px/s -> 30px/s when btnl or btnr is pressed
-        end
+//        if (~sw[13]) begin
+//            speed_store <= 2; // count 1 beats to make frequency 90px/s -> 45px/s 
+//        end
+//        else if (sw[13]) begin
+//            speed_store <= 6; // count 2 beats to make frequency 90px/s -> 30px/s when btnl or btnr is pressed
+//        end
         
-        /*
         if (difficulty == 0) begin
             // easy
             speed_store = 5;
         end
-        if (difficulty == 1) begin
+        else if (difficulty == 1) begin
             // medium
-            speed_store = 2;
+            speed_store = 3;
         end
-        if (difficulty == 2) begin
+        else if (difficulty == 2) begin
             // hard
-            speed_store = 0;
+            speed_store = 1;
         end
-        */
         
         // drop the shape from the top
         if (~shape_a) y_pos_a <= 0; // for every new random x, reset y to 0
@@ -809,47 +796,15 @@ module ui(
     assign moving_square_c = (x >= random_x_c && x < random_x_c + 5 ) && (y >= y_pos_c && y < y_pos_c + 5);
     assign moving_square_d = (x >= random_x_d && x < random_x_d + 5 ) && (y >= y_pos_d && y < y_pos_d + 5);
     assign line = (x >= 0 && x <= 95) && y == line_y;  
-//    assign plus_zero = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 4 + y_lowest))
-//                || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-//                || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
-//                || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-//                || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
-//                || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
-//    assign plus_zero = (((x >= 8 + x_lowest) && (x < 17 + x_lowest) && (y == 4 + y_lowest))
-//            || ((x == 12 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-//            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == y_lowest)) 
-//            || ((x == 19 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)) 
-//            || ((x >= 19 + x_lowest) && (x < 25 + x_lowest) && (y == 8 + y_lowest)) 
-//            || ((x == 24 + x_lowest) && (y >= y_lowest) && (y < 9 + y_lowest)));
     assign plus_zero = (((x >= 8 + x_point_display) && (x < 17 + x_point_display) && (y == 4 + y_point_display))
         || ((x == 12 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)) 
         || ((x >= 19 + x_point_display) && (x < 25 + x_point_display) && (y == y_point_display)) 
         || ((x == 19 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)) 
         || ((x >= 19 + x_point_display) && (x < 25 + x_point_display) && (y == 8 + y_point_display)) 
         || ((x == 24 + x_point_display) && (y >= y_point_display) && (y < 9 + y_point_display)));
-//    assign plus_one = (((x >= 4 + x_lowest) && (x < 11 + x_lowest) && (y == 5 + y_lowest))
-//        || ((x == 7 + x_lowest) && (y >= 2 + y_lowest) && (y < 9 + y_lowest))
-//        || ((x == 13 + x_lowest) && (y >= 2 + y_lowest) && y < 9 + y_lowest));
-//    assign plus_one = (((x >= 8 + x_lowest) && (x < 15 + x_lowest) && (y == 3 + y_lowest))
-//        || ((x == 11 + x_lowest) && (y >= y_lowest) && (y < 7 + y_lowest))
-//        || ((x == 17 + x_lowest) && (y >= y_lowest) && y < 7 + y_lowest));
     assign plus_one = (((x >= 8 + x_point_display) && (x < 15 + x_point_display) && (y == 3 + y_point_display))
         || ((x == 11 + x_point_display) && (y >= y_point_display) && (y < 7 + y_point_display))
         || ((x == 17 + x_point_display) && (y >= y_point_display) && y < 7 + y_point_display));
-//    assign plus_two = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
-//        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
-//        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 6 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
-//        || ((x == 14 + x_lowest) && (y >= 5 + y_lowest) && (y < 10 + y_lowest))
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-//    assign plus_two = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
-//        || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
-//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
-//        || ((x == 22 + x_lowest) && (y >= y_lowest - 1) && (y < 4 + y_lowest)) 
-//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
-//        || ((x == 18 + x_lowest) && (y >= 3 + y_lowest) && (y < 8 + y_lowest))
-//        || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
     assign plus_two = (((x >= 7 + x_point_display) && (x < 16 + x_point_display) && (y == 3 + y_point_display))
         || ((x == 11 + x_point_display) && (y >= y_point_display - 1) && (y < 8 + y_point_display)) 
         || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == y_point_display - 1)) 
@@ -857,18 +812,6 @@ module ui(
         || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 3 + y_point_display)) 
         || ((x == 18 + x_point_display) && (y >= 3 + y_point_display) && (y < 8 + y_point_display))
         || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 7 + y_point_display)));
-//    assign plus_three = (((x >= 3 + x_lowest) && (x < 12 + x_lowest) && (y == 5 + y_lowest))
-//        || ((x == 7 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 1 + y_lowest)) 
-//        || ((x == 18 + x_lowest) && (y >= 1 + y_lowest) && (y < 10 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 5 + y_lowest)) 
-//        || ((x >= 14 + x_lowest) && (x < 19 + x_lowest) && (y == 9 + y_lowest)));
-//    assign plus_three = (((x >= 7 + x_lowest) && (x < 16 + x_lowest) && (y == 3 + y_lowest))
-//       || ((x == 11 + x_lowest) && (y >= y_lowest - 1) && (y < 8 + y_lowest)) 
-//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == y_lowest - 1)) 
-//       || ((x == 22 + x_lowest) && (y >=  y_lowest - 1) && (y < 8 + y_lowest)) 
-//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 3 + y_lowest)) 
-//       || ((x >= 18 + x_lowest) && (x < 23 + x_lowest) && (y == 7 + y_lowest)));
     assign plus_three = (((x >= 7 + x_point_display) && (x < 16 + x_point_display) && (y == 3 + y_point_display))
        || ((x == 11 + x_point_display) && (y >= y_point_display - 1) && (y < 8 + y_point_display)) 
        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == y_point_display - 1)) 
@@ -876,7 +819,6 @@ module ui(
        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 3 + y_point_display)) 
        || ((x >= 18 + x_point_display) && (x < 23 + x_point_display) && (y == 7 + y_point_display)));
 
-    // you will not see 2 of the same arrows on the screen at the same time since the shapes are shared
     assign u_arrowA = ((x == random_x_a + 4) && (y >= y_pos_a) && (y < y_pos_a + 5)) || 
                         ((x >= random_x_a + 3) && (x < random_x_a + 6) && (y >= y_pos_a + 1) && (y < y_pos_a + 5)) ||
                         ((x >= random_x_a + 2) && (x < random_x_a + 7) && (y >= y_pos_a + 2) && (y < y_pos_a + 5)) ||
@@ -1013,41 +955,6 @@ module ui(
                         ((x == random_x_d + 2) && (y == y_pos_d + 5)) || ((x >= random_x_d + 1) && (x < random_x_d + 4) && (y == y_pos_d + 6)) ||
                         ((x >= random_x_d) && (x < random_x_d + 3) && (y == y_pos_d + 7)) || ((x >= random_x_d) && (x < random_x_d + 2) && (y == y_pos_d + 8));
                         
-    /*
-    assign u_arrow= ((x == random_x_up + 4) && (y >= y_pos_up) && (y < y_pos_up + 5)) || 
-                        ((x >= random_x_up + 3) && (x < random_x_up + 6) && (y >= y_pos_up + 1) && (y < y_pos_up + 5)) ||
-                        ((x >= random_x_up + 2) && (x < random_x_up + 7) && (y >= y_pos_up + 2) && (y < y_pos_up + 5)) ||
-                        ((x >= random_x_up + 1) && (x < random_x_up + 8) && (y >= y_pos_up + 3) && (y < y_pos_up + 5)) ||
-                        ((x >= random_x_up) && (x < random_x_up + 9) && (y >= y_pos_up + 4) && (y < y_pos_up + 5)) ||
-                        ((y >= y_pos_up + 5) && (y < y_pos_up + 10) && (x == random_x_up + 4 ));
-    assign l_arrow = ((y == y_pos_left + 4) && (x >= random_x_left) && (x < random_x_left + 5)) || 
-                        ((y >= y_pos_left + 3) && (y < y_pos_left + 6) && (x >= random_x_left + 1) && (x < random_x_left + 5)) ||
-                        ((y >= y_pos_left + 2) && (y < y_pos_left + 7) && (x >= random_x_left + 2) && (x < random_x_left + 5)) ||
-                        ((y >= y_pos_left + 1) && (y < y_pos_left + 8) && (x >= random_x_left + 3) && (x < random_x_left + 5)) ||
-                        ((y >= y_pos_left) && (y < y_pos_left + 9) && (x >= random_x_left + 4) && (x < random_x_left + 5)) ||
-                        ((x >= random_x_left + 5) && (x < random_x_left + 10) && (y == y_pos_left + 4 ));
-    assign d_arrow = ((x == random_x_down + 4) && (y <= y_pos_down) && (y > y_pos_down - 5)) || 
-                        ((x >= random_x_down + 3) && (x < random_x_down + 6) && (y <= y_pos_down - 1) && (y > y_pos_down - 5)) ||
-                        ((x >= random_x_down + 2) && (x < random_x_down + 7) && (y <= y_pos_down - 2) && (y > y_pos_down - 5)) ||
-                        ((x >= random_x_down + 1) && (x < random_x_down + 8) && (y <= y_pos_down - 3) && (y > y_pos_down - 5)) ||
-                        ((x >= random_x_down) && (x < random_x_down + 9) && (y <= y_pos_down - 4) && (y > y_pos_down - 5)) ||
-                        ((y <= y_pos_down - 5) && (y > y_pos_down - 10) && (x == random_x_down + 4 ));
-    assign r_arrow = ((y == y_pos_right + 4) && (x <= random_x_right) && (x > random_x_right - 5)) || 
-                        ((y >= y_pos_right + 3) && (y < y_pos_right + 6) && (x <= random_x_right - 1) && (x > random_x_right - 5)) ||
-                        ((y >= y_pos_right + 2) && (y < y_pos_right + 7) && (x <= random_x_right - 2) && (x > random_x_right - 5)) ||
-                        ((y >= y_pos_right + 1) && (y < y_pos_right + 8) && (x <= random_x_right - 3) && (x > random_x_right - 5)) ||
-                        ((y >= y_pos_right) && (y < y_pos_right + 9) && (x <= random_x_right - 4) && (x > random_x_right - 5)) ||
-                        ((x <= random_x_right - 5) && (x > random_x_right - 10) && (y == y_pos_right + 4 ));
-    assign c_arrow = ((x >= random_x_centre + 3) && (x < random_x_centre + 6) && (y >= y_pos_centre + 3) && (y < y_pos_centre + 6)) ||
-                        ((x == random_x_centre + 5) && (y == y_pos_centre + 3)) || ((x == random_x_centre + 6) && (y == y_pos_centre + 3)) || ((x >= random_x_centre + 5) && (x < random_x_centre + 8) && (y == y_pos_centre + 2)) ||
-                        ((x >= random_x_centre + 6) && (x < random_x_centre + 9) && (y == y_pos_centre + 1)) || ((x >= random_x_centre +7) && (x < random_x_centre + 9) && (y == y_pos_centre)) ||
-                        ((x == random_x_centre + 2) && (y == y_pos_centre + 3)) || ((x >= random_x_centre + 1) && (x < random_x_centre + 4) && (y == y_pos_centre + 2)) ||
-                        ((x >= random_x_centre ) && (x < random_x_centre + 3) && (y == y_pos_centre + 1)) || ((x >= random_x_centre) && (x < random_x_centre + 2) && (y == y_pos_centre)) ||
-                        ((x == random_x_centre + 6) && (y == y_pos_centre + 5)) || ((x >= random_x_centre + 5) && (x < random_x_centre + 8) && (y == y_pos_centre + 6)) ||
-                        ((x >= random_x_centre + 6) && (x < random_x_centre + 9) && (y == y_pos_centre + 7)) || ((x >= random_x_centre +7) && (x < random_x_centre + 9) && (y == y_pos_centre + 8)) ||
-                        ((x == random_x_centre + 2) && (y == y_pos_centre + 5)) || ((x >= random_x_centre + 1) && (x < random_x_centre + 4) && (y == y_pos_centre + 6)) ||
-                        ((x >= random_x_centre) && (x < random_x_centre + 3) && (y == y_pos_centre + 7)) || ((x >= random_x_centre) && (x < random_x_centre + 2) && (y == y_pos_centre + 8));
-    */
     assign zero = (((x == 91) && (y >= 2) && (y < 10))
                   || ((x == 92) && (y >= 2) && (y < 10))
                   || ((x == 94) && (y >= 2) && (y < 10))
@@ -1180,10 +1087,7 @@ module ui(
     always @(posedge clk) begin
         if (line) game_pixel_data <= BLUE;
         else if (moving_shape_a && shape_a) game_pixel_data <= shape_a_colour;
-//        else if (moving_square_b && shape_b) game_pixel_data <= shape_b_colour;
         else if (moving_shape_b && shape_b) game_pixel_data <= shape_b_colour;
-//        else if (moving_square_c && shape_c) game_pixel_data <= shape_c_colour;
-//        else if (moving_square_d && shape_d) game_pixel_data <= shape_d_colour;
         else if (moving_shape_c && shape_c) game_pixel_data <= shape_c_colour;
         else if (moving_shape_d && shape_d) game_pixel_data <= shape_d_colour;
         
